@@ -1,0 +1,3 @@
+display_name: Bundle Size Analysis
+short_description: Analyze npm, Bundlephobia, packaging, and artifact size.
+default_prompt: Analyze package size using Bundlephobia and related local checks. Query published packages, scan package.json dependencies, inspect npm pack output, and summarize concrete size-reduction actions.

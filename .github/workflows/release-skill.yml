@@ -113,7 +113,7 @@ jobs:
           fi
 
           TARGET="$(git rev-parse HEAD)"
-          ASSET="sonarcloud-skill-${TAG}.zip"
+          ASSET="bundlephobia-skill-${TAG}.zip"
 
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
@@ -123,7 +123,7 @@ jobs:
         run: |
           mkdir -p dist
           zip -r "dist/${{ steps.vars.outputs.asset }}" \
-            .github/skills/sonar-manage-findings \
+            .github/skills/bundle-size-analysis \
             .github/instructions/copilot-instructions.md \
             README.md LICENSE SECURITY.md CHANGELOG.md
 

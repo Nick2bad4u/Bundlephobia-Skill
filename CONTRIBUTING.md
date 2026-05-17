@@ -1,4 +1,4 @@
-## Contributing to SonarCloud Skill
+## Contributing to Bundlephobia Skill
 
 Thanks for contributing.
 
@@ -8,7 +8,8 @@ This repository is primarily a skill + helper tooling repo, so high-signal docs 
 
 1. Clone the repository.
 2. Ensure Python 3.10+ is available.
-3. (Optional) create and activate a virtual environment.
+3. Ensure Node.js/npm is available if validating package footprint commands.
+4. (Optional) create and activate a virtual environment.
 
 PowerShell example:
 
@@ -22,8 +23,9 @@ python -m venv .venv
 From repo root, run:
 
 ```powershell
-python -m compileall ".github/skills/sonar-manage-findings/scripts"
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" --help
+python -m compileall ".github/skills/bundle-size-analysis/scripts"
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" --help
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0
 ```
 
 If you touched command behavior, include example command invocations and expected output snippets in your PR description.
@@ -31,9 +33,9 @@ If you touched command behavior, include example command invocations and expecte
 ### Security requirements
 
 - **Do not** commit secrets.
-- **Do not** pass Sonar tokens as CLI literals.
-- Use environment variables (`SONAR_TOKEN` or `--token-env`).
-- Prefer `--dry-run` for mutation commands in docs/examples.
+- **Do not** include private registry tokens in docs, logs, or screenshots.
+- Treat private package names and package metadata as sensitive unless the owner says they are public.
+- Prefer read-only examples and dry-run package commands.
 
 ### Commit messages
 
@@ -45,6 +47,6 @@ This repo includes commit message conventions in:
 
 - [ ] Documentation updated (README/SKILL/help text as needed)
 - [ ] Commands in docs are still valid
-- [ ] No secrets or tokens in changes
+- [ ] No secrets or private package metadata in changes
 - [ ] Sanity checks pass locally
 - [ ] Scope is focused and reversible

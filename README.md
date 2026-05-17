@@ -1,30 +1,28 @@
-# SonarCloud Skill
+# Bundlephobia Skill
 
-[![latest GitHub release.](https://flat.badgen.net/github/release/Nick2bad4u/SonarCloud-Skill?color=cyan)](https://github.com/Nick2bad4u/SonarCloud-Skill/releases) [![GitHub stars.](https://flat.badgen.net/github/stars/Nick2bad4u/SonarCloud-Skill?color=yellow)](https://github.com/Nick2bad4u/SonarCloud-Skill/stargazers) [![GitHub forks.](https://flat.badgen.net/github/forks/Nick2bad4u/SonarCloud-Skill?color=green)](https://github.com/Nick2bad4u/SonarCloud-Skill/forks) [![GitHub open issues.](https://flat.badgen.net/github/open-issues/Nick2bad4u/SonarCloud-Skill?color=red)](https://github.com/Nick2bad4u/SonarCloud-Skill/issues) [![GitHub PRs.](https://flat.badgen.net/github/open-prs/Nick2bad4u/SonarCloud-Skill?color=orange)](https://github.com/Nick2bad4u/SonarCloud-Skill/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen) [![GitHub license](https://flat.badgen.net/github/license/Nick2bad4u/SonarCloud-Skill?color=purple)](https://github.com/Nick2bad4u/SonarCloud-Skill/blob/main/LICENSE) [![GitHub Dependabot](https://flat.badgen.net/github/dependabot/Nick2bad4u/SonarCloud-Skill?color=blue)](https://github.com/Nick2bad4u/SonarCloud-Skill/network/updates) 
+[![latest GitHub release.](https://flat.badgen.net/github/release/Nick2bad4u/Bundlephobia-Skill?color=cyan)](https://github.com/Nick2bad4u/Bundlephobia-Skill/releases) [![GitHub stars.](https://flat.badgen.net/github/stars/Nick2bad4u/Bundlephobia-Skill?color=yellow)](https://github.com/Nick2bad4u/Bundlephobia-Skill/stargazers) [![GitHub forks.](https://flat.badgen.net/github/forks/Nick2bad4u/Bundlephobia-Skill?color=green)](https://github.com/Nick2bad4u/Bundlephobia-Skill/forks) [![GitHub open issues.](https://flat.badgen.net/github/open-issues/Nick2bad4u/Bundlephobia-Skill?color=red)](https://github.com/Nick2bad4u/Bundlephobia-Skill/issues) [![GitHub PRs.](https://flat.badgen.net/github/open-prs/Nick2bad4u/Bundlephobia-Skill?color=orange)](https://github.com/Nick2bad4u/Bundlephobia-Skill/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen) [![GitHub license](https://flat.badgen.net/github/license/Nick2bad4u/Bundlephobia-Skill?color=purple)](https://github.com/Nick2bad4u/Bundlephobia-Skill/blob/main/LICENSE) [![GitHub Dependabot](https://flat.badgen.net/github/dependabot/Nick2bad4u/Bundlephobia-Skill?color=blue)](https://github.com/Nick2bad4u/Bundlephobia-Skill/network/updates)
 
-A Copilot / AI skill for inspecting and managing **SonarCloud** and **SonarQube** findings.
+A Copilot / AI skill for inspecting npm package bundle cost with **Bundlephobia** and related package-size checks.
 
 This repository provides:
 
-- a reusable `sonar-manage-findings` skill (`.github/skills/sonar-manage-findings/SKILL.md`)
-- a Python CLI helper to query and triage project findings
-- GitHub automation for security/scanning hygiene
+- a reusable `bundle-size-analysis` skill (`.github/skills/bundle-size-analysis/SKILL.md`)
+- a Python CLI helper for Bundlephobia package queries, package.json scans, npm publish footprint checks, and local artifact gzip checks
+- GitHub automation for packaging the skill bundle
 
 ---
 
 ## What this skill can do
 
-With a Sonar token in an environment variable, you can:
+Using live package-size services and local package data, you can:
 
-- summarize project quality state (issues, hotspots, quality gate, selected metrics)
-- list and inspect issues/hotspots
-- comment, assign, retag, and transition issues (`resolve`, `wontfix`, `falsepositive`, etc.)
-- review hotspots (`SAFE`, `FIXED`, etc.)
-- inspect measures, measure history, analyses, and Compute Engine tasks
-- inspect or mutate project settings, quality gate/profile association, and project tags
-- fall back to direct API calls for unsupported endpoints
-
-> The helper is repository-agnostic: pass `--repo` to any local checkout, or pass explicit `--project-key` / `--base-url`.
+- submit npm packages to Bundlephobia's API and collect minified/gzipped cost
+- scan a `package.json` dependency list the same way Bundlephobia's site scan works
+- inspect Bundlephobia exports, dependency composition, history, and similar packages
+- check local publish footprint with `npm pack --json --dry-run`
+- measure built JS/CSS artifact sizes and gzip sizes
+- run threshold checks for package, pack, and artifact budgets
+- choose the right evidence source for bundle size, install footprint, publish footprint, or actual app bundle analysis
 
 ---
 
@@ -32,17 +30,15 @@ With a Sonar token in an environment variable, you can:
 
 ```text
 .github/
-	skills/
-		sonar-manage-findings/
-			SKILL.md
-			scripts/
-				manage_sonar_findings.py
-				sonar_manage_api.py
-				sonar_manage_common.py
-				sonar_manage_diagnostics.py
-				sonar_manage_issues.py
-				sonar_manage_project.py
-				sonar_manage_render.py
+  skills/
+    bundle-size-analysis/
+      SKILL.md
+      agents/
+        openai.yaml
+      references/
+        check-selection.md
+      scripts/
+        bundle_size_analysis.py
 README.md
 CONTRIBUTING.md
 SECURITY.md
@@ -53,37 +49,30 @@ CHANGELOG.md
 
 ## Quick start
 
-### 1) Prerequisites
+### 1. Prerequisites
 
 - Python 3.10+
-- A Sonar token exported to an environment variable (recommended: `SONAR_TOKEN`)
+- Node.js/npm when using `pack` or local package checks
+- Network access when querying Bundlephobia
 
-### 2) Set your token (do not pass it on CLI)
-
-#### PowerShell
-
-```powershell
-$env:SONAR_TOKEN = "<your-token>"
-```
-
-#### Bash
-
-```bash
-export SONAR_TOKEN="<your-token>"
-```
-
-### 3) Run the helper
+### 2. Query package sizes
 
 From repository root:
 
 ```powershell
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" summary --repo "."
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 lodash@4.17.21
+```
+
+Fetch deeper Bundlephobia data:
+
+```powershell
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --history 10 --similar
 ```
 
 Machine-readable output:
 
 ```powershell
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" summary --repo "." --json
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --json
 ```
 
 ---
@@ -91,33 +80,36 @@ python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" s
 ## Common commands
 
 ```powershell
-# List open/reopened issues
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" list-issues --repo "." --issue-statuses OPEN,CONFIRMED,REOPENED
+# Scan runtime dependencies from package.json
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json
 
-# Show issue activity
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" issue-changelog --repo "." --issue AZ123
+# Include dev and optional dependencies in a package.json scan
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --include-dev --include-optional
 
-# Resolve an issue (dry-run first)
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" transition-issue --repo "." --issue AZ123 --transition resolve --comment "Fixed in code." --dry-run
+# Check npm publish footprint
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" pack --repo .
 
-# List hotspots awaiting review
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" list-hotspots --repo "." --hotspot-status TO_REVIEW --include-details
+# Measure local build artifacts
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" artifacts dist build
 
-# Check quality gate
-python ".github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py" quality-gate-status --repo "."
+# Run the combined audit
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" audit --repo .
+
+# Fail when any queried package exceeds a gzip budget
+python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --max-gzip-kb 50
 ```
 
-For the full command surface and workflows, see:
+For the full command surface and workflow guidance, see:
 
-- `.github/skills/sonar-manage-findings/SKILL.md`
+- `.github/skills/bundle-size-analysis/SKILL.md`
 
 ---
 
 ## Security notes
 
-- Never paste tokens into command arguments or commit them to git.
-- Prefer environment variables and secret managers.
-- Use `--dry-run` before bulk mutation actions.
+- Do not commit private package metadata, registry tokens, or generated output that exposes secrets.
+- The helper does not require Bundlephobia credentials.
+- `npm pack --dry-run` is read-only, but review output before sharing it publicly for private packages.
 
 More details: [`SECURITY.md`](./SECURITY.md)
 
@@ -143,7 +135,7 @@ This repository includes a release workflow that creates a downloadable zip bund
     - `release_type`: `patch` / `minor` / `major`
     - `version`: optional explicit `x.y.z` (overrides `release_type`)
     - `ref`: branch to release from (default `main`)
-- Asset: `sonarcloud-skill-<tag>.zip`
+- Asset: `bundlephobia-skill-<tag>.zip`
 
 Examples:
 

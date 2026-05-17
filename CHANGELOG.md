@@ -9,10 +9,10 @@ and this project follows semantic versioning conventions where practical.
 
 ### Added
 
-- Expanded top-level repository documentation and quick start guidance.
-- Added contribution guide and security policy.
-- Added Copilot system prompt file used by workflow automation.
+- Added the `bundle-size-analysis` skill for Bundlephobia, npm pack, and artifact-size workflows.
+- Added a Python helper for package queries, package.json scans, publish-footprint checks, and size thresholds.
+- Added guidance for choosing between Bundlephobia, npm pack, local artifact checks, and app-bundle analyzers.
 
 ### Changed
 
-- Aligned Dependabot configuration with this repository's actual ecosystems.
+- Converted repository documentation, release packaging, and templates to Bundlephobia/package-size analysis.

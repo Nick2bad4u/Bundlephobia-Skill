@@ -26,4 +26,4 @@ body:
     id: context
     attributes:
       label: Context
-      description: Sonar product, environment, and relevant command snippets.
+      description: Package manager, environment, package names if public, and relevant command snippets.

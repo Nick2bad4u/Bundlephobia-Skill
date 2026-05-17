@@ -19,14 +19,15 @@
 <!-- Include commands and outcomes. -->
 
 ```text
-python -m compileall .github/skills/sonar-manage-findings/scripts
-python .github/skills/sonar-manage-findings/scripts/manage_sonar_findings.py --help
+python -m compileall .github/skills/bundle-size-analysis/scripts
+python .github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py --help
+python .github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py package react@18.2.0
 ```
 
 ## Security / safety checklist
 
 - [ ] No credentials/tokens committed
-- [ ] Mutation examples use `--dry-run` where applicable
+- [ ] Private package names or registry metadata are redacted where needed
 - [ ] Docs updated to match behavior changes
 
 ## Related issues

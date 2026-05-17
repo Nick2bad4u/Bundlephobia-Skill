@@ -25,7 +25,7 @@ body:
     attributes:
       label: Bug summary
       description: What is broken?
-      placeholder: "Running `summary --repo .` fails with ..."
+      placeholder: "Running `scan --package-json package.json` fails with ..."
     validations:
       required: true
 
@@ -35,9 +35,8 @@ body:
       label: Steps to reproduce
       description: Include exact commands where possible.
       placeholder: |
-        1. Set SONAR_TOKEN ...
-        2. Run ...
-        3. Observe ...
+        1. Run ...
+        2. Observe ...
     validations:
       required: true
 
@@ -72,8 +71,8 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: OS, Python version, shell, Sonar product (Cloud/Qube), etc.
-      placeholder: "Windows 11, Python 3.12, PowerShell 7.5, SonarCloud"
+      description: OS, Python version, Node/npm version, shell, package manager, etc.
+      placeholder: "Windows 11, Python 3.12, Node 24, npm 11, PowerShell 7.5"
 
   - type: textarea
     id: logs
