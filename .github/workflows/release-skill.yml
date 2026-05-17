@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: Release Skill Bundle
+
+run-name: Release Skill Bundle • ${{ github.ref_name || github.event.inputs.version || github.event.inputs.release_type }} @${{ github.actor }}
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release bump type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      version:
+        description: "Explicit release version in x.y.z format (overrides release_type)"
+        required: false
+        type: string
+      ref:
+        description: "Branch to release from when running manually"
+        required: false
+        default: main
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: "release-skill-${{ github.ref || github.event.inputs.version || github.event.inputs.release_type }}"
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Package and publish skill bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+
+      - name: Resolve release tag
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            EXPLICIT_VERSION="${{ github.event.inputs.version }}"
+            RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+
+            if [ -n "${EXPLICIT_VERSION}" ]; then
+              if ! [[ "${EXPLICIT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo "version must be in x.y.z format" >&2
+                exit 1
+              fi
+              NEXT_VERSION="${EXPLICIT_VERSION}"
+            else
+              LATEST_TAG="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+
+              if [ -n "${LATEST_TAG}" ]; then
+                BASE_VERSION="${LATEST_TAG#v}"
+              else
+                BASE_VERSION="0.0.0"
+              fi
+
+              IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
+
+              case "${RELEASE_TYPE}" in
+                patch)
+                  PATCH=$((PATCH + 1))
+                  ;;
+                minor)
+                  MINOR=$((MINOR + 1))
+                  PATCH=0
+                  ;;
+                major)
+                  MAJOR=$((MAJOR + 1))
+                  MINOR=0
+                  PATCH=0
+                  ;;
+                *)
+                  echo "Unsupported release_type: ${RELEASE_TYPE}" >&2
+                  exit 1
+                  ;;
+              esac
+
+              NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            fi
+
+            TAG="v${NEXT_VERSION}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if ! [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Resolved tag '${TAG}' is not in vX.Y.Z format" >&2
+            exit 1
+          fi
+
+          TARGET="$(git rev-parse HEAD)"
+          ASSET="sonarcloud-skill-${TAG}.zip"
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
+          echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
+
+      - name: Build release bundle
+        run: |
+          mkdir -p dist
+          zip -r "dist/${{ steps.vars.outputs.asset }}" \
+            .github/skills/sonar-manage-findings \
+            .github/instructions/copilot-instructions.md \
+            README.md LICENSE SECURITY.md CHANGELOG.md
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ${{ steps.vars.outputs.asset }}
+          path: dist/${{ steps.vars.outputs.asset }}
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish GitHub release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.vars.outputs.tag }}
+          ASSET: dist/${{ steps.vars.outputs.asset }}
+          TARGET: ${{ steps.vars.outputs.target }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --generate-notes
+          fi

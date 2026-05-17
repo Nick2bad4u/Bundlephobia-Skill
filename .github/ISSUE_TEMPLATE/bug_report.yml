@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible defect in this repository's skill/scripts/workflows
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug.
+        Please provide enough detail for maintainers to reproduce and triage quickly.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed/redacted any secrets or tokens from logs/screenshots.
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug summary
+      description: What is broken?
+      placeholder: "Running `summary --repo .` fails with ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include exact commands where possible.
+      placeholder: |
+        1. Set SONAR_TOKEN ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Skill documentation (SKILL.md)
+        - Python CLI helper
+        - GitHub workflow automation
+        - Hook scripts
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, shell, Sonar product (Cloud/Qube), etc.
+      placeholder: "Windows 11, Python 3.12, PowerShell 7.5, SonarCloud"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / output (redacted)
+      render: shell

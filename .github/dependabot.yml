@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://www.schemastore.org/dependabot-2.0.json
+version: 2
+
+updates:
+    - package-ecosystem: github-actions
+      directory: "/"
+      schedule:
+          interval: quarterly
+          day: monday
+          time: "05:30"
+          timezone: "America/Detroit"
+      target-branch: "main"
+      rebase-strategy: auto
+      labels:
+          - "dependabot"
+          - "github-actions"
+      commit-message:
+          prefix: "[dependabot][actions]"
+          include: "scope"
+      open-pull-requests-limit: 1

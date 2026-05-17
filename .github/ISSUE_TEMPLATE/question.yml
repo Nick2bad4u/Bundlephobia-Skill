@@ -1,0 +1,29 @@
+name: Question / help
+description: Ask for usage help or clarification about this skill
+title: "[question]: "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please include enough context so we can answer accurately.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you already tried
+      description: Commands/docs already checked.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Sonar product, environment, and relevant command snippets.
