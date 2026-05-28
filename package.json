@@ -1,5 +1,5 @@
 {
-  "name": "@nick2bad4u/bundle-size-analysis",
+  "name": "bundle-size-analysis-skill",
   "version": "1.0.0",
   "private": false,
   "description": "Codex skill for Bundlephobia and npm package size analysis.",
@@ -33,16 +33,13 @@
     "README.md",
     "SECURITY.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "engines": {
     "node": ">=22.14"
   },
   "scripts": {
     "validate": "node tools/validate-skill-package.mjs",
     "pack:dry-run": "npm pack --dry-run",
-    "publish:local": "npm run release:verify && npm publish --access public",
+    "publish:local": "npm run release:verify && npm publish",
     "release:verify": "npm run validate && npm run pack:dry-run",
     "stage:local": "npm run release:verify && npm stage publish"
   },

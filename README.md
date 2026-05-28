@@ -49,13 +49,13 @@ CHANGELOG.md
 
 ## Publishing
 
-The skill is packaged for GitHub releases and npm as `@nick2bad4u/bundle-size-analysis`.
+The skill is packaged for GitHub releases and npm as `bundle-size-analysis-skill`.
 
 For the first npm publish, publish locally once so the package exists:
 
 ```powershell
 npm run release:verify
-npm publish --access public
+npm publish
 ```
 
 Then configure npm trusted publishing for staged publishing:
@@ -68,7 +68,7 @@ Then configure npm trusted publishing for staged publishing:
 CLI equivalent:
 
 ```powershell
-npm trust github "@nick2bad4u/bundle-size-analysis" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-stage-publish
+npm trust github "bundle-size-analysis-skill" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-stage-publish
 ```
 
 After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or running the `Release Skill Bundle` workflow manually with an explicit version. The workflow uses npm OIDC trusted publishing to stage the package and does not require an npm automation token.
@@ -76,7 +76,7 @@ After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or run
 Approve the staged package after reviewing it:
 
 ```powershell
-npm stage list "@nick2bad4u/bundle-size-analysis"
+npm stage list "bundle-size-analysis-skill"
 npm stage approve "<stage-id>"
 ```
 
