@@ -115,9 +115,11 @@ jobs:
           TARGET="$(git rev-parse HEAD)"
           ASSET="bundlephobia-skill-${TAG}.zip"
 
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
-          echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=${TAG}"
+            echo "target=${TARGET}"
+            echo "asset=${ASSET}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build release bundle
         run: |
