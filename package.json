@@ -1,0 +1,47 @@
+{
+  "name": "@nick2bad4u/bundle-size-analysis",
+  "version": "1.0.0",
+  "description": "Codex skill for Bundlephobia and npm package size analysis.",
+  "license": "Unlicense",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nick2bad4u/Bundlephobia-Skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nick2bad4u/Bundlephobia-Skill/issues"
+  },
+  "homepage": "https://github.com/Nick2bad4u/Bundlephobia-Skill#readme",
+  "keywords": [
+    "agent-skill",
+    "bundle-size",
+    "bundlephobia",
+    "codex",
+    "npm",
+    "openai"
+  ],
+  "files": [
+    ".github/instructions/copilot-instructions.md",
+    ".github/skills/bundle-size-analysis/",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.14"
+  },
+  "scripts": {
+    "validate": "node scripts/validate-skill-package.mjs",
+    "pack:dry-run": "npm pack --dry-run",
+    "release:verify": "npm run validate && npm run pack:dry-run"
+  },
+  "codexSkill": {
+    "name": "bundle-size-analysis",
+    "path": ".github/skills/bundle-size-analysis",
+    "githubReleaseAssetPrefix": "bundlephobia-skill"
+  }
+}

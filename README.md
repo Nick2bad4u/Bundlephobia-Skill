@@ -47,6 +47,34 @@ CHANGELOG.md
 
 ---
 
+## Publishing
+
+The skill is packaged for GitHub releases and npm as `@nick2bad4u/bundle-size-analysis`.
+
+For the first npm publish, publish locally once so the package exists:
+
+```powershell
+npm run release:verify
+npm publish --access public
+```
+
+Then configure npm trusted publishing for:
+
+- Organization or user: `Nick2bad4u`
+- Repository: `Bundlephobia-Skill`
+- Workflow filename: `release-skill.yml`
+- Allowed action: `npm publish`
+
+CLI equivalent:
+
+```powershell
+npm trust github "@nick2bad4u/bundle-size-analysis" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-publish
+```
+
+After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or running the `Release Skill Bundle` workflow manually with an explicit version. The workflow uses npm OIDC trusted publishing and does not require an npm automation token.
+
+---
+
 ## Quick start
 
 ### 1. Prerequisites
