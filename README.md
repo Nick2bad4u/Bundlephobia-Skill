@@ -55,23 +55,30 @@ For the first npm publish, publish locally once so the package exists:
 
 ```powershell
 npm run release:verify
-npm publish --access public
+npm publish .\dist\npm --access public
 ```
 
-Then configure npm trusted publishing for:
+Then configure npm trusted publishing for staged publishing:
 
 - Organization or user: `Nick2bad4u`
 - Repository: `Bundlephobia-Skill`
 - Workflow filename: `release-skill.yml`
-- Allowed action: `npm publish`
+- Allowed action: `npm stage publish`
 
 CLI equivalent:
 
 ```powershell
-npm trust github "@nick2bad4u/bundle-size-analysis" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-publish
+npm trust github "@nick2bad4u/bundle-size-analysis" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-stage-publish
 ```
 
-After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or running the `Release Skill Bundle` workflow manually with an explicit version. The workflow uses npm OIDC trusted publishing and does not require an npm automation token.
+After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or running the `Release Skill Bundle` workflow manually with an explicit version. The workflow uses npm OIDC trusted publishing to stage the package and does not require an npm automation token.
+
+Approve the staged package after reviewing it:
+
+```powershell
+npm stage list "@nick2bad4u/bundle-size-analysis"
+npm stage approve "<stage-id>"
+```
 
 ---
 

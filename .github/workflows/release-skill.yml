@@ -153,8 +153,8 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Publish npm package
-        run: npm publish
+      - name: Stage npm package
+        run: npm stage publish ./dist/npm
 
       - name: Publish GitHub release asset
         env:
