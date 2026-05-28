@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">Bundle Size Analysis</title>
+  <desc id="desc">Package box with a downward trend line.</desc>
+  <rect width="400" height="400" rx="88" fill="#eff6ff"/>
+  <path d="M116 150 200 102l84 48v100l-84 48-84-48z" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M116 150 200 198l84-48M200 198v100" fill="none" stroke="#1d4ed8" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M124 286h152" stroke="#0f172a" stroke-width="14" stroke-linecap="round"/>
+  <path d="M140 256 184 222l42 26 52-70" fill="none" stroke="#059669" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M250 180h28v28" fill="none" stroke="#059669" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

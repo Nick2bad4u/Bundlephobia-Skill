@@ -1,6 +1,9 @@
 ---
 name: bundle-size-analysis
 description: Analyze JavaScript and npm package size using Bundlephobia plus related package and bundle-size checks. Use when Codex needs to submit npm packages or package.json dependencies to bundlephobia.com, inspect minified/gzipped cost, compare packages, check exports/dependencies/history/similar packages, validate npm packaging size, inspect built artifacts, or recommend dependency-size reductions.
+license: "Unlicense"
+metadata:
+  short-description: "Analyze npm, Bundlephobia, and package size"
 ---
 
 # Bundle Size Analysis

@@ -1,3 +1,7 @@
-display_name: Bundle Size Analysis
-short_description: Analyze npm, Bundlephobia, packaging, and artifact size.
-default_prompt: Analyze package size using Bundlephobia and related local checks. Query published packages, scan package.json dependencies, inspect npm pack output, and summarize concrete size-reduction actions.
+interface:
+  display_name: "Bundle Size Analysis"
+  short_description: "Analyze npm, Bundlephobia, and package size"
+  icon_small: "./assets/bundle-size-analysis-small.svg"
+  icon_large: "./assets/bundle-size-analysis.png"
+  brand_color: "#2563EB"
+  default_prompt: "Use $bundle-size-analysis to measure npm package size, inspect bundle artifacts, and recommend concrete size reductions."
