@@ -20,11 +20,11 @@ Use this skill to answer package-size questions with live measurements where pos
 2. Run the helper from the skill directory:
 
 ```powershell
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --similar
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" pack --repo .
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" artifacts dist
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" audit --repo .
+python "scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --similar
+python "scripts/bundle_size_analysis.py" scan --package-json package.json
+python "scripts/bundle_size_analysis.py" pack --repo .
+python "scripts/bundle_size_analysis.py" artifacts dist
+python "scripts/bundle_size_analysis.py" audit --repo .
 ```
 
 3. Report:

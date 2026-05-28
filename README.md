@@ -6,7 +6,7 @@ A Copilot / AI skill for inspecting npm package bundle cost with **Bundlephobia*
 
 This repository provides:
 
-- a reusable `bundle-size-analysis` skill (`.github/skills/bundle-size-analysis/SKILL.md`)
+- a reusable `bundle-size-analysis` skill (`SKILL.md`)
 - a Python CLI helper for Bundlephobia package queries, package.json scans, npm publish footprint checks, and local artifact gzip checks
 - GitHub automation for packaging the skill bundle
 
@@ -29,16 +29,16 @@ Using live package-size services and local package data, you can:
 ## Repository layout
 
 ```text
-.github/
-  skills/
-    bundle-size-analysis/
-      SKILL.md
-      agents/
-        openai.yaml
-      references/
-        check-selection.md
-      scripts/
-        bundle_size_analysis.py
+SKILL.md
+agents/
+  openai.yaml
+assets/
+  bundle-size-analysis-small.svg
+  bundle-size-analysis.png
+references/
+  check-selection.md
+scripts/
+  bundle_size_analysis.py
 README.md
 CONTRIBUTING.md
 SECURITY.md
@@ -55,7 +55,7 @@ For the first npm publish, publish locally once so the package exists:
 
 ```powershell
 npm run release:verify
-npm publish .\dist\npm --access public
+npm publish --access public
 ```
 
 Then configure npm trusted publishing for staged publishing:
@@ -95,19 +95,19 @@ npm stage approve "<stage-id>"
 From repository root:
 
 ```powershell
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 lodash@4.17.21
+python "scripts/bundle_size_analysis.py" package react@18.2.0 lodash@4.17.21
 ```
 
 Fetch deeper Bundlephobia data:
 
 ```powershell
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --history 10 --similar
+python "scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --history 10 --similar
 ```
 
 Machine-readable output:
 
 ```powershell
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --json
+python "scripts/bundle_size_analysis.py" package react@18.2.0 --json
 ```
 
 ---
@@ -116,27 +116,27 @@ python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" pac
 
 ```powershell
 # Scan runtime dependencies from package.json
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json
+python "scripts/bundle_size_analysis.py" scan --package-json package.json
 
 # Include dev and optional dependencies in a package.json scan
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --include-dev --include-optional
+python "scripts/bundle_size_analysis.py" scan --package-json package.json --include-dev --include-optional
 
 # Check npm publish footprint
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" pack --repo .
+python "scripts/bundle_size_analysis.py" pack --repo .
 
 # Measure local build artifacts
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" artifacts dist build
+python "scripts/bundle_size_analysis.py" artifacts dist build
 
 # Run the combined audit
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" audit --repo .
+python "scripts/bundle_size_analysis.py" audit --repo .
 
 # Fail when any queried package exceeds a gzip budget
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --max-gzip-kb 50
+python "scripts/bundle_size_analysis.py" scan --package-json package.json --max-gzip-kb 50
 ```
 
 For the full command surface and workflow guidance, see:
 
-- `.github/skills/bundle-size-analysis/SKILL.md`
+- `SKILL.md`
 
 ---
 

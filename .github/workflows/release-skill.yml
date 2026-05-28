@@ -141,9 +141,8 @@ jobs:
         run: |
           mkdir -p dist
           zip -r "dist/${{ steps.vars.outputs.asset }}" \
-            .github/skills/bundle-size-analysis \
-            .github/instructions/copilot-instructions.md \
-            README.md LICENSE SECURITY.md CHANGELOG.md
+            SKILL.md LICENSE.txt agents assets references scripts \
+            README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -154,7 +153,7 @@ jobs:
           retention-days: 7
 
       - name: Stage npm package
-        run: npm stage publish ./dist/npm
+        run: npm stage publish
 
       - name: Publish GitHub release asset
         env:

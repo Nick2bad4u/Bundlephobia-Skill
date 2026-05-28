@@ -15,6 +15,10 @@ async function assertFile(relativePath) {
   await access(path.join(root, relativePath));
 }
 
+function skillRelative(relativePath) {
+  return skill.path === "." ? relativePath : `${skill.path}/${relativePath}`;
+}
+
 assert(skill?.name, "package.json must define codexSkill.name");
 assert(skill?.path, "package.json must define codexSkill.path");
 assert(pkg.name?.startsWith("@nick2bad4u/"), "package name must use the @nick2bad4u npm scope");
@@ -23,10 +27,16 @@ assert(
   pkg.repository?.url === "git+https://github.com/Nick2bad4u/Bundlephobia-Skill.git",
   "repository.url must exactly match the GitHub repository for npm trusted publishing",
 );
-assert(pkg.files?.includes(`${skill.path}/`), `package files must include ${skill.path}/`);
+assert(skill.path === ".", "codexSkill.path must point at the repository root");
+for (const requiredFile of ["SKILL.md", "LICENSE.txt", "agents/", "assets/", "scripts/", "README.md", "CHANGELOG.md", "SECURITY.md"]) {
+  assert(pkg.files?.includes(requiredFile), `package files must include ${requiredFile}`);
+}
+for (const forbiddenFile of [".github/skills/", ".github/instructions/", "dist/", "tools/"]) {
+  assert(!pkg.files?.some((entry) => entry.startsWith(forbiddenFile)), `package files must not include ${forbiddenFile}`);
+}
 
-const skillMdPath = `${skill.path}/SKILL.md`;
-const openAiMetadataPath = `${skill.path}/agents/openai.yaml`;
+const skillMdPath = skillRelative("SKILL.md");
+const openAiMetadataPath = skillRelative("agents/openai.yaml");
 const skillMd = await readFile(path.join(root, skillMdPath), "utf8");
 const openAiMetadata = await readFile(path.join(root, openAiMetadataPath), "utf8");
 
@@ -43,10 +53,9 @@ assert(smallIcon, "agents/openai.yaml must define icon_small");
 assert(largeIcon, "agents/openai.yaml must define icon_large");
 
 await Promise.all([
-  assertFile(`${skill.path}/${smallIcon.replace(/^\.\//, "")}`),
-  assertFile(`${skill.path}/${largeIcon.replace(/^\.\//, "")}`),
-  assertFile(`${skill.path}/LICENSE.txt`),
-  assertFile(".github/instructions/copilot-instructions.md"),
+  assertFile(skillRelative(smallIcon.replace(/^\.\//, ""))),
+  assertFile(skillRelative(largeIcon.replace(/^\.\//, ""))),
+  assertFile(skillRelative("LICENSE.txt")),
 ]);
 
 console.log(`Validated ${pkg.name} skill package metadata.`);
