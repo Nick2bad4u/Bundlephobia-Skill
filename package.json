@@ -15,11 +15,20 @@
   "homepage": "https://github.com/Nick2bad4u/Bundlephobia-Skill#readme",
   "keywords": [
     "agent-skill",
+    "agent-skills",
+    "ai-agent",
     "bundle-size",
     "bundlephobia",
+    "claude-code",
     "codex",
+    "cursor",
+    "gemini-cli",
+    "github-copilot",
     "npm",
-    "openai"
+    "openai",
+    "opencode",
+    "universal",
+    "zed"
   ],
   "files": [
     "SKILL.md",

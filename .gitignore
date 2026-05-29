@@ -790,6 +790,7 @@ $RECYCLE.BIN/
 
 # AI tools
 .agentic-tools*
+.agents/
 .gemini/
 .jscpd/
 repomix-output.xml

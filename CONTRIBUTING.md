@@ -23,9 +23,9 @@ python -m venv .venv
 From repo root, run:
 
 ```powershell
-python -m compileall ".github/skills/bundle-size-analysis/scripts"
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" --help
-python ".github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0
+python -m compileall "scripts"
+python "scripts/bundle_size_analysis.py" --help
+python "scripts/bundle_size_analysis.py" package react@18.2.0
 ```
 
 If you touched command behavior, include example command invocations and expected output snippets in your PR description.

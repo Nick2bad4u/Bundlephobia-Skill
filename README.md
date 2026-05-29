@@ -2,7 +2,7 @@
 
 [![latest GitHub release.](https://flat.badgen.net/github/release/Nick2bad4u/Bundlephobia-Skill?color=cyan)](https://github.com/Nick2bad4u/Bundlephobia-Skill/releases) [![GitHub stars.](https://flat.badgen.net/github/stars/Nick2bad4u/Bundlephobia-Skill?color=yellow)](https://github.com/Nick2bad4u/Bundlephobia-Skill/stargazers) [![GitHub forks.](https://flat.badgen.net/github/forks/Nick2bad4u/Bundlephobia-Skill?color=green)](https://github.com/Nick2bad4u/Bundlephobia-Skill/forks) [![GitHub open issues.](https://flat.badgen.net/github/open-issues/Nick2bad4u/Bundlephobia-Skill?color=red)](https://github.com/Nick2bad4u/Bundlephobia-Skill/issues) [![GitHub PRs.](https://flat.badgen.net/github/open-prs/Nick2bad4u/Bundlephobia-Skill?color=orange)](https://github.com/Nick2bad4u/Bundlephobia-Skill/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen) [![GitHub license](https://flat.badgen.net/github/license/Nick2bad4u/Bundlephobia-Skill?color=purple)](https://github.com/Nick2bad4u/Bundlephobia-Skill/blob/main/LICENSE) [![GitHub Dependabot](https://flat.badgen.net/github/dependabot/Nick2bad4u/Bundlephobia-Skill?color=blue)](https://github.com/Nick2bad4u/Bundlephobia-Skill/network/updates)
 
-A Copilot / AI skill for inspecting npm package bundle cost with **Bundlephobia** and related package-size checks.
+An open-agent skill for inspecting npm package bundle cost with **Bundlephobia** and related package-size checks.
 
 This repository provides:
 
@@ -47,38 +47,35 @@ CHANGELOG.md
 
 ---
 
+## Agent compatibility
+
+This is a root `SKILL.md` package. `npx skills` can install it directly from GitHub, and `npx skills experimental_sync` can discover it from `node_modules` because the npm package ships `SKILL.md` at the package root.
+
+Use `--agent universal` for agents that consume the shared `.agents/skills` layout. Use `--agent "*"` only when you intentionally want to install to every supported agent directory.
+
+```powershell
+npx skills add Nick2bad4u/Bundlephobia-Skill -g --agent universal -y
+npx skills add Nick2bad4u/Bundlephobia-Skill -g --agent "*" -y
+npm install --save-dev bundle-size-analysis-skill
+npx skills experimental_sync --agent universal -y
+```
+
+OpenAI-specific display metadata lives in `agents/openai.yaml`. The portable skill contract is `SKILL.md` plus the referenced `assets/`, `references/`, and `scripts/` files.
+
+---
+
 ## Publishing
 
 The skill is packaged for GitHub releases and npm as `bundle-size-analysis-skill`.
 
-For the first npm publish, publish locally once so the package exists:
+Verify the package locally before publishing:
 
 ```powershell
 npm run release:verify
-npm publish
+npm publish --access public --provenance
 ```
 
-Then configure npm trusted publishing for staged publishing:
-
-- Organization or user: `Nick2bad4u`
-- Repository: `Bundlephobia-Skill`
-- Workflow filename: `release-skill.yml`
-- Allowed action: `npm stage publish`
-
-CLI equivalent:
-
-```powershell
-npm trust github "bundle-size-analysis-skill" --repo "Nick2bad4u/Bundlephobia-Skill" --file "release-skill.yml" --allow-stage-publish
-```
-
-After that, create releases from GitHub Actions by pushing a `vX.Y.Z` tag or running the `Release Skill Bundle` workflow manually with an explicit version. The workflow uses npm OIDC trusted publishing to stage the package and does not require an npm automation token.
-
-Approve the staged package after reviewing it:
-
-```powershell
-npm stage list "bundle-size-analysis-skill"
-npm stage approve "<stage-id>"
-```
+GitHub Actions publishes with npm OIDC trusted publishing using `npm publish --access public --provenance`. Configure the npm package trusted publisher for repository `Nick2bad4u/Bundlephobia-Skill` and workflow `.github/workflows/release-skill.yml`. The workflow intentionally does not use `npm stage` commands.
 
 ---
 

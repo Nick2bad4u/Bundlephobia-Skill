@@ -19,9 +19,9 @@
 <!-- Include commands and outcomes. -->
 
 ```text
-python -m compileall .github/skills/bundle-size-analysis/scripts
-python .github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py --help
-python .github/skills/bundle-size-analysis/scripts/bundle_size_analysis.py package react@18.2.0
+python -m compileall scripts
+python scripts/bundle_size_analysis.py --help
+python scripts/bundle_size_analysis.py package react@18.2.0
 ```
 
 ## Security / safety checklist
