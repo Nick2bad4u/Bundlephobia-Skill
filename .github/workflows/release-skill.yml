@@ -137,6 +137,16 @@ jobs:
       - name: Validate npm package
         run: npm run release:verify
 
+      - name: Generate release notes
+        id: git-cliff
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4
+        with:
+          config: cliff.toml
+          args: --verbose --tag ${{ steps.vars.outputs.tag }} --strip header
+        env:
+          OUTPUT: release-notes.md
+          GITHUB_REPO: ${{ github.repository }}
+
       - name: Build release bundle
         run: |
           mkdir -p dist
@@ -152,18 +162,28 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Stage npm package
-        run: npm stage publish
+      - name: Publish npm package
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          VERSION="${{ steps.vars.outputs.version }}"
+
+          if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "${PACKAGE_NAME}@${VERSION} is already published; skipping npm publish."
+          else
+            npm publish --access public
+          fi
 
       - name: Publish GitHub release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.vars.outputs.tag }}
           ASSET: dist/${{ steps.vars.outputs.asset }}
+          NOTES: ${{ steps.git-cliff.outputs.changelog }}
           TARGET: ${{ steps.vars.outputs.target }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file "$NOTES"
             gh release upload "$TAG" "$ASSET" --clobber
           else
-            gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --generate-notes
+            gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --notes-file "$NOTES"
           fi
