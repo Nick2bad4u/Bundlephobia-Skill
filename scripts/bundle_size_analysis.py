@@ -8,6 +8,7 @@ import gzip
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -77,19 +78,10 @@ def request_json(url: str, *, timeout: int, attempts: int = 2) -> Any:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as error:
-            body = error.read().decode("utf-8", errors="replace")
-            try:
-                payload = json.loads(body)
-            except json.JSONDecodeError:
-                payload = {"error": {"code": str(error.code), "message": body or error.reason}}
-            if error.code >= 500 and attempt < attempts:
+            payload = parse_http_error_payload(error)
+            if should_retry_http_error(error, attempt=attempt, attempts=attempts):
                 last_error = error
-                retry_after = 0
-                try:
-                    retry_after = int(error.headers.get("Retry-After", "0"))
-                except ValueError:
-                    retry_after = 0
-                time.sleep(max(retry_after, 1.5 * attempt))
+                time.sleep(http_retry_delay(error, attempt))
                 continue
             raise SizeCheckError(json.dumps(payload, ensure_ascii=False)) from error
         except (urllib.error.URLError, TimeoutError) as error:
@@ -98,6 +90,34 @@ def request_json(url: str, *, timeout: int, attempts: int = 2) -> Any:
                 time.sleep(1.5 * attempt)
                 continue
     raise SizeCheckError(f"request failed for {url}: {last_error}") from last_error
+
+
+def parse_http_error_payload(error: urllib.error.HTTPError) -> dict[str, Any]:
+    body = error.read().decode("utf-8", errors="replace")
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return {
+            "error": {
+                "code": str(error.code),
+                "message": body or error.reason,
+            }
+        }
+    return payload if isinstance(payload, dict) else {"error": payload}
+
+
+def should_retry_http_error(
+    error: urllib.error.HTTPError, *, attempt: int, attempts: int
+) -> bool:
+    return error.code >= 500 and attempt < attempts
+
+
+def http_retry_delay(error: urllib.error.HTTPError, attempt: int) -> float:
+    try:
+        retry_after = int(error.headers.get("Retry-After", "0"))
+    except ValueError:
+        retry_after = 0
+    return max(retry_after, 1.5 * attempt)
 
 
 def bundlephobia_url(endpoint: str, package: str, extra: dict[str, Any] | None = None) -> str:
@@ -176,29 +196,58 @@ def packages_from_package_json(
     skip_patterns: list[str],
 ) -> list[str]:
     data = read_package_json(path)
+    sections = dependency_sections(include_dev=include_dev, include_optional=include_optional)
+    compiled = [re.compile(pattern) for pattern in skip_patterns]
+    packages: list[str] = []
+    seen: set[str] = set()
+    for spec in iter_registry_dependency_specs(data, sections, compiled):
+        if spec not in seen:
+            packages.append(spec)
+            seen.add(spec)
+    return packages
+
+
+def dependency_sections(*, include_dev: bool, include_optional: bool) -> list[str]:
     sections = ["dependencies"]
     if include_optional:
         sections.append("optionalDependencies")
     if include_dev:
         sections.append("devDependencies")
+    return sections
 
-    compiled = [re.compile(pattern) for pattern in skip_patterns]
-    packages: list[str] = []
-    seen: set[str] = set()
+
+def iter_registry_dependency_specs(
+    data: dict[str, Any],
+    sections: list[str],
+    skip_patterns: list[re.Pattern[str]],
+) -> list[str]:
+    specs: list[str] = []
     for section in sections:
         deps = data.get(section, {})
-        if not isinstance(deps, dict):
-            continue
-        for name, range_text in sorted(deps.items()):
-            if any(pattern.search(name) for pattern in compiled):
-                continue
-            if not isinstance(range_text, str) or is_non_registry_spec(range_text):
-                continue
-            spec = name if range_text in {"*", "latest"} else f"{name}@{range_text}"
-            if spec not in seen:
-                packages.append(spec)
-                seen.add(spec)
-    return packages
+        if isinstance(deps, dict):
+            specs.extend(dependency_specs_from_mapping(deps, skip_patterns))
+    return specs
+
+
+def dependency_specs_from_mapping(
+    deps: dict[str, Any], skip_patterns: list[re.Pattern[str]]
+) -> list[str]:
+    specs: list[str] = []
+    for name, range_text in sorted(deps.items()):
+        spec = dependency_spec(name, range_text, skip_patterns)
+        if spec is not None:
+            specs.append(spec)
+    return specs
+
+
+def dependency_spec(
+    name: str, range_text: Any, skip_patterns: list[re.Pattern[str]]
+) -> str | None:
+    if any(pattern.search(name) for pattern in skip_patterns):
+        return None
+    if not isinstance(range_text, str) or is_non_registry_spec(range_text):
+        return None
+    return name if range_text in {"*", "latest"} else f"{name}@{range_text}"
 
 
 def is_non_registry_spec(spec: str) -> bool:
@@ -248,7 +297,7 @@ def summarize_package_results(results: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def run_npm_pack(repo: Path) -> dict[str, Any]:
-    command = ["npm", "pack", "--json", "--dry-run"]
+    command = [npm_executable(), "pack", "--json", "--dry-run"]
     try:
         completed = subprocess.run(
             command,
@@ -292,6 +341,15 @@ def run_npm_pack(repo: Path) -> dict[str, Any]:
         "fileCount": len(files),
         "largestFiles": largest_files,
     }
+
+
+def npm_executable() -> str:
+    candidates = ("npm.cmd", "npm") if os.name == "nt" else ("npm", "npm.cmd")
+    for candidate in candidates:
+        executable = shutil.which(candidate)
+        if executable is not None:
+            return executable
+    raise SizeCheckError("npm was not found on PATH")
 
 
 def measure_artifacts(paths: list[Path], extensions: set[str]) -> dict[str, Any]:
@@ -349,101 +407,175 @@ def format_bytes(value: Any) -> str:
 
 
 def print_text(payload: dict[str, Any]) -> None:
-    kind = payload.get("kind")
-    if kind == "bundlephobia":
-        summary = payload["summary"]
+    printers = {
+        "bundlephobia": print_bundlephobia_text,
+        "npmPack": print_npm_pack_text,
+        "artifacts": print_artifacts_text,
+        "audit": print_audit_text,
+    }
+    printers.get(str(payload.get("kind")), print_json_text)(payload)
+
+
+def print_bundlephobia_text(payload: dict[str, Any]) -> None:
+    summary = payload["summary"]
+    print(
+        "Bundlephobia: "
+        f"{summary['successful']}/{summary['packageCount']} successful, "
+        f"total min {format_bytes(summary['totalMinifiedBytes'])}, "
+        f"total gzip {format_bytes(summary['totalGzipBytes'])}"
+    )
+    for item in sorted_bundlephobia_packages(payload):
+        print_bundlephobia_package(item)
+
+
+def sorted_bundlephobia_packages(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    return sorted(
+        payload["packages"],
+        key=lambda row: int(row.get("size", {}).get("gzip") or -1),
+        reverse=True,
+    )
+
+
+def print_bundlephobia_package(item: dict[str, Any]) -> None:
+    if "error" in item:
+        print_bundlephobia_error(item)
+        return
+
+    size = item["size"]
+    print(
+        f"- {item['package']}: min {format_bytes(size.get('size'))}, "
+        f"gzip {format_bytes(size.get('gzip'))}, "
+        f"deps {size.get('dependencyCount', 'n/a')}, "
+        f"version {size.get('version', 'n/a')}"
+    )
+
+
+def print_bundlephobia_error(item: dict[str, Any]) -> None:
+    error = item["error"]
+    code = error.get("code") or error.get("status") or error.get("error_code") or "unknown"
+    message = (
+        error.get("message")
+        or error.get("detail")
+        or error.get("title")
+        or json.dumps(error, ensure_ascii=False)
+    )
+    print(f"- {item['package']}: ERROR {code} - {message}")
+
+
+def print_npm_pack_text(payload: dict[str, Any]) -> None:
+    print(
+        f"npm pack: {payload.get('name')}@{payload.get('version')} "
+        f"packed {format_bytes(payload.get('packedBytes'))}, "
+        f"unpacked {format_bytes(payload.get('unpackedBytes'))}, "
+        f"{payload.get('fileCount')} files"
+    )
+    for item in payload.get("largestFiles", [])[:10]:
+        print(f"- {item.get('path')}: {format_bytes(item.get('size'))}")
+
+
+def print_artifacts_text(payload: dict[str, Any]) -> None:
+    summary = payload["summary"]
+    print(
+        "Artifacts: "
+        f"{summary['fileCount']} files, "
+        f"total {format_bytes(summary['totalBytes'])}, "
+        f"gzip {format_bytes(summary['totalGzipBytes'])}"
+    )
+    for item in payload.get("files", [])[:15]:
         print(
-            "Bundlephobia: "
-            f"{summary['successful']}/{summary['packageCount']} successful, "
-            f"total min {format_bytes(summary['totalMinifiedBytes'])}, "
-            f"total gzip {format_bytes(summary['totalGzipBytes'])}"
+            f"- {item['path']}: {format_bytes(item['bytes'])}, "
+            f"gzip {format_bytes(item['gzipBytes'])}"
         )
-        for item in sorted(
-            payload["packages"],
-            key=lambda row: int(row.get("size", {}).get("gzip") or -1),
-            reverse=True,
-        ):
-            if "error" in item:
-                error = item["error"]
-                code = error.get("code") or error.get("status") or error.get("error_code") or "unknown"
-                message = (
-                    error.get("message")
-                    or error.get("detail")
-                    or error.get("title")
-                    or json.dumps(error, ensure_ascii=False)
-                )
-                print(f"- {item['package']}: ERROR {code} - {message}")
-                continue
-            size = item["size"]
-            print(
-                f"- {item['package']}: min {format_bytes(size.get('size'))}, "
-                f"gzip {format_bytes(size.get('gzip'))}, "
-                f"deps {size.get('dependencyCount', 'n/a')}, "
-                f"version {size.get('version', 'n/a')}"
-            )
-        return
-    if kind == "npmPack":
-        print(
-            f"npm pack: {payload.get('name')}@{payload.get('version')} "
-            f"packed {format_bytes(payload.get('packedBytes'))}, "
-            f"unpacked {format_bytes(payload.get('unpackedBytes'))}, "
-            f"{payload.get('fileCount')} files"
-        )
-        for item in payload.get("largestFiles", [])[:10]:
-            print(f"- {item.get('path')}: {format_bytes(item.get('size'))}")
-        return
-    if kind == "artifacts":
-        summary = payload["summary"]
-        print(
-            "Artifacts: "
-            f"{summary['fileCount']} files, "
-            f"total {format_bytes(summary['totalBytes'])}, "
-            f"gzip {format_bytes(summary['totalGzipBytes'])}"
-        )
-        for item in payload.get("files", [])[:15]:
-            print(f"- {item['path']}: {format_bytes(item['bytes'])}, gzip {format_bytes(item['gzipBytes'])}")
-        return
-    if kind == "audit":
-        for section in payload["sections"]:
-            print_text(section)
-        return
+
+
+def print_audit_text(payload: dict[str, Any]) -> None:
+    for section in payload["sections"]:
+        print_text(section)
+
+
+def print_json_text(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, indent=2))
 
 
 def apply_thresholds(payload: dict[str, Any], args: argparse.Namespace) -> list[str]:
-    failures: list[str] = []
+    kind = str(payload.get("kind"))
+    handlers = {
+        "bundlephobia": apply_bundlephobia_thresholds,
+        "npmPack": apply_npm_pack_thresholds,
+        "artifacts": apply_artifact_thresholds,
+        "audit": apply_audit_thresholds,
+    }
+    return handlers.get(kind, no_threshold_failures)(payload, args)
+
+
+def bytes_to_kb(value: Any) -> float:
+    try:
+        return float(value) / 1024
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def apply_bundlephobia_thresholds(
+    payload: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
     max_gzip = getattr(args, "max_gzip_kb", None)
     max_size = getattr(args, "max_size_kb", None)
-    max_packed = getattr(args, "max_packed_kb", None)
-    max_unpacked = getattr(args, "max_unpacked_kb", None)
-    max_artifact_gzip = getattr(args, "max_artifact_gzip_kb", None)
+    failures: list[str] = []
 
-    def kb(value: Any) -> float:
-        try:
-            return float(value) / 1024
-        except (TypeError, ValueError):
-            return 0.0
-
-    if payload.get("kind") == "bundlephobia":
-        for item in payload.get("packages", []):
-            size = item.get("size") or {}
-            if max_gzip is not None and kb(size.get("gzip")) > max_gzip:
-                failures.append(f"{item['package']} gzip {kb(size.get('gzip')):.1f} kB > {max_gzip:.1f} kB")
-            if max_size is not None and kb(size.get("size")) > max_size:
-                failures.append(f"{item['package']} min {kb(size.get('size')):.1f} kB > {max_size:.1f} kB")
-    elif payload.get("kind") == "npmPack":
-        if max_packed is not None and kb(payload.get("packedBytes")) > max_packed:
-            failures.append(f"packed size {kb(payload.get('packedBytes')):.1f} kB > {max_packed:.1f} kB")
-        if max_unpacked is not None and kb(payload.get("unpackedBytes")) > max_unpacked:
-            failures.append(f"unpacked size {kb(payload.get('unpackedBytes')):.1f} kB > {max_unpacked:.1f} kB")
-    elif payload.get("kind") == "artifacts":
-        total_gzip = payload.get("summary", {}).get("totalGzipBytes")
-        if max_artifact_gzip is not None and kb(total_gzip) > max_artifact_gzip:
-            failures.append(f"artifact gzip total {kb(total_gzip):.1f} kB > {max_artifact_gzip:.1f} kB")
-    elif payload.get("kind") == "audit":
-        for section in payload.get("sections", []):
-            failures.extend(apply_thresholds(section, args))
+    for item in payload.get("packages", []):
+        size = item.get("size") or {}
+        gzip_kb = bytes_to_kb(size.get("gzip"))
+        minified_kb = bytes_to_kb(size.get("size"))
+        if max_gzip is not None and gzip_kb > max_gzip:
+            failures.append(
+                f"{item['package']} gzip {gzip_kb:.1f} kB > {max_gzip:.1f} kB"
+            )
+        if max_size is not None and minified_kb > max_size:
+            failures.append(
+                f"{item['package']} min {minified_kb:.1f} kB > {max_size:.1f} kB"
+            )
     return failures
+
+
+def apply_npm_pack_thresholds(
+    payload: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
+    checks = [
+        ("packed size", "packedBytes", getattr(args, "max_packed_kb", None)),
+        ("unpacked size", "unpackedBytes", getattr(args, "max_unpacked_kb", None)),
+    ]
+    return [
+        f"{label} {bytes_to_kb(payload.get(key)):.1f} kB > {limit:.1f} kB"
+        for label, key, limit in checks
+        if limit is not None and bytes_to_kb(payload.get(key)) > limit
+    ]
+
+
+def apply_artifact_thresholds(
+    payload: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
+    max_artifact_gzip = getattr(args, "max_artifact_gzip_kb", None)
+    total_gzip_kb = bytes_to_kb(payload.get("summary", {}).get("totalGzipBytes"))
+    if max_artifact_gzip is not None and total_gzip_kb > max_artifact_gzip:
+        return [
+            f"artifact gzip total {total_gzip_kb:.1f} kB > {max_artifact_gzip:.1f} kB"
+        ]
+    return []
+
+
+def apply_audit_thresholds(
+    payload: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
+    failures: list[str] = []
+    for section in payload.get("sections", []):
+        failures.extend(apply_thresholds(section, args))
+    return failures
+
+
+def no_threshold_failures(
+    _payload: dict[str, Any], _args: argparse.Namespace
+) -> list[str]:
+    return []
 
 
 def add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -507,51 +639,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
-    payload: dict[str, Any]
 
     try:
-        if args.command == "package":
-            payload = query_many_packages(args.packages, args)
-        elif args.command == "scan":
-            patterns = ([] if args.no_default_skips else DEFAULT_SKIP_PATTERNS) + args.exclude_regex
-            packages = packages_from_package_json(
-                args.package_json,
-                include_dev=args.include_dev,
-                include_optional=args.include_optional,
-                skip_patterns=patterns,
-            )
-            payload = query_many_packages(packages, args)
-            payload["sourcePackageJson"] = str(args.package_json)
-        elif args.command == "pack":
-            payload = run_npm_pack(args.repo.resolve())
-        elif args.command == "artifacts":
-            extensions = {extension.strip().lower() for extension in args.extensions.split(",") if extension.strip()}
-            payload = measure_artifacts(args.paths, extensions)
-        elif args.command == "audit":
-            repo = args.repo.resolve()
-            sections = []
-            package_json = repo / "package.json"
-            if package_json.exists():
-                patterns = ([] if args.no_default_skips else DEFAULT_SKIP_PATTERNS) + args.exclude_regex
-                packages = packages_from_package_json(
-                    package_json,
-                    include_dev=args.include_dev,
-                    include_optional=args.include_optional,
-                    skip_patterns=patterns,
-                )
-                scan_payload = query_many_packages(packages, args)
-                scan_payload["sourcePackageJson"] = str(package_json)
-                sections.append(scan_payload)
-            try:
-                sections.append(run_npm_pack(repo))
-            except SizeCheckError as error:
-                sections.append({"kind": "npmPack", "error": str(error), "repo": str(repo)})
-            artifact_paths = default_artifact_paths(repo)
-            if artifact_paths:
-                sections.append(measure_artifacts(artifact_paths, DEFAULT_ARTIFACT_EXTENSIONS))
-            payload = {"kind": "audit", "repo": str(repo), "sections": sections}
-        else:
-            raise SizeCheckError(f"unknown command: {args.command}")
+        payload = run_command(args)
     except SizeCheckError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
@@ -570,6 +660,103 @@ def main(argv: list[str]) -> int:
     if not args.allow_failures and payload_has_query_failures(payload):
         return 1
     return 0
+
+
+def run_command(args: argparse.Namespace) -> dict[str, Any]:
+    handlers = {
+        "package": command_package,
+        "scan": command_scan,
+        "pack": command_pack,
+        "artifacts": command_artifacts,
+        "audit": command_audit,
+    }
+    try:
+        return handlers[args.command](args)
+    except KeyError as error:
+        raise SizeCheckError(f"unknown command: {args.command}") from error
+
+
+def command_package(args: argparse.Namespace) -> dict[str, Any]:
+    return query_many_packages(args.packages, args)
+
+
+def command_scan(args: argparse.Namespace) -> dict[str, Any]:
+    payload = query_many_packages(packages_from_scan_args(args), args)
+    payload["sourcePackageJson"] = str(args.package_json)
+    return payload
+
+
+def packages_from_scan_args(args: argparse.Namespace) -> list[str]:
+    return packages_from_package_json(
+        args.package_json,
+        include_dev=args.include_dev,
+        include_optional=args.include_optional,
+        skip_patterns=skip_patterns_from_args(args),
+    )
+
+
+def skip_patterns_from_args(args: argparse.Namespace) -> list[str]:
+    base_patterns = [] if args.no_default_skips else DEFAULT_SKIP_PATTERNS
+    return base_patterns + args.exclude_regex
+
+
+def command_pack(args: argparse.Namespace) -> dict[str, Any]:
+    return run_npm_pack(args.repo.resolve())
+
+
+def command_artifacts(args: argparse.Namespace) -> dict[str, Any]:
+    extensions = {
+        extension.strip().lower()
+        for extension in args.extensions.split(",")
+        if extension.strip()
+    }
+    return measure_artifacts(args.paths, extensions)
+
+
+def command_audit(args: argparse.Namespace) -> dict[str, Any]:
+    repo = args.repo.resolve()
+    return {
+        "kind": "audit",
+        "repo": str(repo),
+        "sections": audit_sections(repo, args),
+    }
+
+
+def audit_sections(repo: Path, args: argparse.Namespace) -> list[dict[str, Any]]:
+    sections: list[dict[str, Any]] = []
+    package_json = repo / "package.json"
+    if package_json.exists():
+        sections.append(scan_repo_package_json(package_json, args))
+
+    sections.append(pack_repo_for_audit(repo))
+    sections.extend(measure_default_artifacts(repo))
+    return sections
+
+
+def scan_repo_package_json(package_json: Path, args: argparse.Namespace) -> dict[str, Any]:
+    packages = packages_from_package_json(
+        package_json,
+        include_dev=args.include_dev,
+        include_optional=args.include_optional,
+        skip_patterns=skip_patterns_from_args(args),
+    )
+    scan_payload = query_many_packages(packages, args)
+    scan_payload["sourcePackageJson"] = str(package_json)
+    return scan_payload
+
+
+def pack_repo_for_audit(repo: Path) -> dict[str, Any]:
+    try:
+        return run_npm_pack(repo)
+    except SizeCheckError as error:
+        return {"kind": "npmPack", "error": str(error), "repo": str(repo)}
+
+
+def measure_default_artifacts(repo: Path) -> list[dict[str, Any]]:
+    artifact_paths = default_artifact_paths(repo)
+    if not artifact_paths:
+        return []
+    return [measure_artifacts(artifact_paths, DEFAULT_ARTIFACT_EXTENSIONS)]
 
 
 def payload_has_query_failures(payload: dict[str, Any]) -> bool:
