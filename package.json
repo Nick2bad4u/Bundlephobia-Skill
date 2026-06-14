@@ -49,7 +49,8 @@
     "validate": "node tools/validate-skill-package.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "publish:local": "npm run release:verify && npm publish --access public",
-    "release:verify": "npm run validate && npm run pack:dry-run"
+    "release:verify": "npm run validate && npm run pack:dry-run",
+    "update-actions": "npx actions-up --yes --style sha"
   },
   "codexSkill": {
     "name": "bundle-size-analysis",
