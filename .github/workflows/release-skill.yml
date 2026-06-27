@@ -151,7 +151,7 @@ jobs:
         run: |
           mkdir -p dist
           zip -r "dist/${{ steps.vars.outputs.asset }}" \
-            SKILL.md LICENSE.txt agents assets references scripts \
+            SKILL.md LICENSE.txt agents assets references scripts/*.py \
             README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
 
       - name: Upload workflow artifact

@@ -84,7 +84,7 @@ assert(
   "repository.url must exactly match the GitHub repository for npm trusted publishing",
 );
 assert(skill.path === ".", "codexSkill.path must point at the repository root");
-for (const requiredFile of ["SKILL.md", "LICENSE.txt", "agents/", "assets/", "scripts/", "README.md", "CHANGELOG.md", "SECURITY.md"]) {
+for (const requiredFile of ["SKILL.md", "LICENSE.txt", "agents/", "assets/", "scripts/*.py", "README.md", "CHANGELOG.md", "SECURITY.md"]) {
   assert(pkg.files?.includes(requiredFile), `package files must include ${requiredFile}`);
 }
 for (const forbiddenFile of [".github/skills/", ".github/instructions/", "dist/", "tools/"]) {

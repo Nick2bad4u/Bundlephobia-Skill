@@ -36,7 +36,7 @@
     "agents/",
     "assets/",
     "references/",
-    "scripts/",
+    "scripts/*.py",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "README.md",
@@ -46,10 +46,11 @@
     "node": ">=22.14"
   },
   "scripts": {
+    "test": "python -m unittest discover -s tests -p \"test_*.py\"",
     "validate": "node tools/validate-skill-package.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "publish:local": "npm run release:verify && npm publish --access public",
-    "release:verify": "npm run validate && npm run pack:dry-run",
+    "release:verify": "npm run validate && npm run test && npm run pack:dry-run",
     "update-actions": "npx actions-up --yes --style sha"
   },
   "codexSkill": {
