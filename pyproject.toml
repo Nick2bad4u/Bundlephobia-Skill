@@ -322,10 +322,12 @@
 
 [tool.coverage.run]
     branch = true
-    source = [ "scripts" ]
+    omit   = [ "tests/*" ]
+    source = [ "." ]
 
 [tool.coverage.report]
     fail_under   = 75
+    omit         = [ "tests/*" ]
     precision    = 2
     show_missing = true
     skip_covered = true
