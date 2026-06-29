@@ -80,6 +80,7 @@ jobs:
           files: test-report.junit.xml
           flags: python
           name: pytest-junit-python
+          plugins: noop
           report_type: test_results
           fail_ci_if_error: true
           disable_search: true
@@ -94,6 +95,7 @@ jobs:
           files: coverage/python-coverage.xml
           flags: python
           name: pytest-coverage-python
+          plugins: noop
           report_type: coverage
           fail_ci_if_error: true
           disable_search: true
