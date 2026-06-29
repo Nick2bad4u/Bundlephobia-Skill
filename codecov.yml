@@ -1,0 +1,48 @@
+codecov:
+  require_ci_to_pass: true
+  notify:
+    after_n_builds: 1
+    notify_error: true
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "75...100"
+  status:
+    project:
+      python:
+        base: auto
+        flags:
+          - python
+        if_ci_failed: error
+        if_not_found: failure
+        informational: false
+        only_pulls: false
+        target: 75%
+        threshold: 0%
+    patch:
+      python:
+        base: auto
+        flags:
+          - python
+        if_ci_failed: error
+        if_not_found: failure
+        informational: false
+        only_pulls: false
+        target: 75%
+        threshold: 0%
+
+flags:
+  python:
+    carryforward: false
+    paths:
+      - scripts/
+
+comment:
+  behavior: default
+  layout: "condensed_header, diff, flags, files"
+  require_changes: false
+
+ignore:
+  - tests/**
