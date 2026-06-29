@@ -84,6 +84,15 @@ DEFAULT_ARTIFACT_EXTENSIONS = {
 }
 QueryParams = Mapping[str, str | int | bool]
 SizePayload = dict[str, Any]
+ObjectList = list[object]
+
+
+def as_size_payload(payload: Any) -> SizePayload:
+    return cast("SizePayload", payload)
+
+
+def as_object_list(payload: Any) -> ObjectList:
+    return cast("ObjectList", payload)
 
 
 @dataclass(frozen=True)
@@ -105,7 +114,7 @@ class SizeCheckError(RuntimeError):
 
 def mark_untrusted_payload(payload: Any, *, key: str | None = None) -> Any:
     if isinstance(payload, dict):
-        payload_mapping = cast("dict[str, Any]", payload)
+        payload_mapping = as_size_payload(payload)
         marked: dict[str, Any] = {
             item_key: mark_untrusted_payload(item_value, key=item_key)
             for item_key, item_value in payload_mapping.items()
@@ -115,14 +124,14 @@ def mark_untrusted_payload(payload: Any, *, key: str | None = None) -> Any:
             if not isinstance(metadata, dict):
                 metadata = {}
                 marked["_meta"] = metadata
-            cast("dict[str, Any]", metadata).setdefault(
+            as_size_payload(metadata).setdefault(
                 "untrustedContentWarning",
                 UNTRUSTED_CONTENT_WARNING,
             )
         return marked
 
     if isinstance(payload, list):
-        return mark_untrusted_list(cast("list[object]", payload), key=key)
+        return mark_untrusted_list(as_object_list(payload), key=key)
 
     if isinstance(payload, str) and key in UNTRUSTED_TEXT_KEYS:
         return mark_untrusted_text(payload)
@@ -191,7 +200,7 @@ def parse_http_error_payload(error: urllib.error.HTTPError) -> dict[str, Any]:
                 "message": body or error.reason,
             }
         }
-    return cast("dict[str, Any]", payload) if isinstance(payload, dict) else {"error": payload}
+    return as_size_payload(payload) if isinstance(payload, dict) else {"error": payload}
 
 
 def should_retry_http_error(error: urllib.error.HTTPError, *, attempt: int, attempts: int) -> bool:
@@ -254,9 +263,9 @@ def parse_api_error(message: str) -> dict[str, Any]:
     try:
         parsed: object = json.loads(message)
         if isinstance(parsed, dict):
-            parsed_mapping = cast("dict[str, Any]", parsed)
+            parsed_mapping = as_size_payload(parsed)
             error = parsed_mapping.get("error", parsed_mapping)
-            return cast("dict[str, Any]", error) if isinstance(error, dict) else {"message": error}
+            return as_size_payload(error) if isinstance(error, dict) else {"message": error}
     except json.JSONDecodeError:
         pass
     return {"code": "RequestError", "message": message}
@@ -271,7 +280,7 @@ def read_package_json(path: Path) -> dict[str, Any]:
         raise SizeCheckError(f"invalid package.json at {path}: {error}") from error
     if not isinstance(payload, dict):
         raise SizeCheckError(f"package.json must contain a JSON object: {path}")
-    return cast("dict[str, Any]", payload)
+    return as_size_payload(payload)
 
 
 def packages_from_package_json(
@@ -311,7 +320,7 @@ def iter_registry_dependency_specs(
     for section in sections:
         deps = data.get(section, {})
         if isinstance(deps, dict):
-            specs.extend(dependency_specs_from_mapping(cast("dict[str, Any]", deps), skip_patterns))
+            specs.extend(dependency_specs_from_mapping(as_size_payload(deps), skip_patterns))
     return specs
 
 
@@ -391,13 +400,13 @@ def run_npm_pack(repo: Path) -> dict[str, Any]:
         raise SizeCheckError(f"npm pack returned invalid JSON: {completed.stdout}") from error
     if not isinstance(payload, list) or not payload:
         raise SizeCheckError("npm pack returned no package metadata")
-    payload_items = cast("list[object]", payload)
+    payload_items = as_object_list(payload)
     pack_item = payload_items[0]
     if not isinstance(pack_item, dict):
         raise SizeCheckError("npm pack returned invalid package metadata")
-    pack = cast("dict[str, Any]", pack_item)
+    pack = as_size_payload(pack_item)
     files_payload = pack.get("files")
-    files = cast("list[object]", files_payload) if isinstance(files_payload, list) else []
+    files = as_object_list(files_payload) if isinstance(files_payload, list) else []
     largest_files = sorted(
         [item for item in (pack_file_summary(file_item) for file_item in files) if item is not None],
         key=lambda item: item["size"],
@@ -512,7 +521,7 @@ def print_untrusted_content_warning(payload: dict[str, Any]) -> None:
     metadata = payload.get("_meta")
     if not isinstance(metadata, dict):
         return
-    metadata_mapping = cast("dict[str, Any]", metadata)
+    metadata_mapping = as_size_payload(metadata)
 
     warning = metadata_mapping.get("untrustedContentWarning")
     if isinstance(warning, str) and warning:
@@ -640,7 +649,7 @@ def apply_bundlephobia_thresholds(payload: dict[str, Any], args: argparse.Namesp
         size = item.get("size")
         if not isinstance(size, dict):
             size = {}
-        size_mapping = cast("dict[str, Any]", size)
+        size_mapping = as_size_payload(size)
         gzip_kb = bytes_to_kb(size_mapping.get("gzip"))
         minified_kb = bytes_to_kb(size_mapping.get("size"))
         if max_gzip is not None and gzip_kb > max_gzip:

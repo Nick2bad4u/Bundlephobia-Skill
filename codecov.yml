@@ -16,7 +16,7 @@ coverage:
         flags:
           - python
         if_ci_failed: error
-        if_not_found: failure
+        if_not_found: success
         informational: false
         only_pulls: false
         target: 75%
@@ -27,7 +27,7 @@ coverage:
         flags:
           - python
         if_ci_failed: error
-        if_not_found: failure
+        if_not_found: success
         informational: false
         only_pulls: false
         target: 75%

@@ -271,7 +271,7 @@ def test_http_retry_delay_uses_retry_after_and_fallback() -> None:
         assert bsa.should_retry_http_error(retry_error, attempt=1, attempts=2)
         assert not bsa.should_retry_http_error(retry_error, attempt=2, attempts=2)
         assert bsa.http_retry_delay(retry_error, 1) == 7
-        assert bsa.http_retry_delay(fallback_error, 2) == 3.0
+        assert bsa.http_retry_delay(fallback_error, 2) == pytest.approx(3.0)
     finally:
         retry_error.close()
         fallback_error.close()
@@ -492,7 +492,7 @@ def test_format_and_threshold_helpers() -> None:
     assert bsa.format_bytes(None) == "n/a"
     assert bsa.format_bytes(512) == "512 B"
     assert bsa.format_bytes(1536) == "1.5 kB"
-    assert bsa.bytes_to_kb("bad") == 0.0
+    assert bsa.bytes_to_kb("bad") == pytest.approx(0.0)
     assert bsa.apply_thresholds(bundle_payload, threshold_args(max_gzip_kb=1.0, max_size_kb=1.0)) == [
         "big gzip 4.0 kB > 1.0 kB",
         "big min 8.0 kB > 1.0 kB",
