@@ -69,7 +69,7 @@
     "ruff:fix": "ruff check --fix scripts tests",
     "ruff:format": "ruff format scripts tests",
     "ruff:format:check": "ruff format --check scripts tests",
-    "test:python": "pytest --junitxml=test-report.junit.xml --cov=. --cov-report=term-missing:skip-covered --cov-report=xml:coverage/python-coverage.xml --cov-fail-under=75",
+    "test:python": "pytest --junitxml=test-report.junit.xml --cov=. --cov-report=term-missing:skip-covered --cov-report=lcov:coverage/python-coverage.lcov --cov-fail-under=75",
     "typecheck:python": "mypy && pyright",
     "skillcheck": "skillcheck --history SKILL.md  --fail-on-regression"
   },

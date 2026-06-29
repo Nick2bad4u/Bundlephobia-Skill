@@ -332,5 +332,5 @@
     show_missing = true
     skip_covered = true
 
-[tool.coverage.xml]
-    output = "coverage/python-coverage.xml"
+[tool.coverage.lcov]
+    output = "coverage/python-coverage.lcov"
