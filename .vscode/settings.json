@@ -1,4 +1,28 @@
 {
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    },
+    "mypy-type-checker.reportingScope": "workspace",
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "python.analysis.typeCheckingMode": "strict",
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "ruff.configurationPreference": "filesystemFirst",
+    "ruff.fixAll": true,
+    "ruff.format.backend": "internal",
+    "ruff.importStrategy": "fromEnvironment",
+    "ruff.lint.enable": true,
+    "ruff.nativeServer": "auto",
+    "ruff.organizeImports": true,
     "sonarlint.connectedMode.project": {
         "connectionId": "nick2bad4u",
         "projectKey": "Nick2bad4u_Bundlephobia-Skill"

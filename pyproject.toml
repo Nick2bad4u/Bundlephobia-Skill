@@ -1,0 +1,334 @@
+[tool.ruff]
+    force-exclude     = true
+    line-length       = 120
+    required-version  = ">=0.15.20"
+    show-fixes        = true
+    target-version    = "py314"
+    src               = [ "." ]
+    respect-gitignore = true
+    indent-width      = 4
+    cache-dir         = ".cache/.ruff_cache"
+    extend-exclude    = [
+        ".bzr",
+        ".cache",
+        ".git",
+        ".hg",
+        ".mypy_cache",
+        ".nox",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".svn",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "__pypackages__",
+        "build",
+        "coverage",
+        "dist",
+        "env",
+        "htmlcov",
+        "node_modules",
+        "site-packages",
+        "third_party",
+        "tmp",
+        "vendor",
+        "venv"
+    ]
+
+    [tool.ruff.format]
+        docstring-code-format = true
+        line-ending           = "lf"
+        quote-style           = "double"
+
+    [tool.ruff.analyze]
+        detect-string-imports = true
+        direction             = "dependencies"
+        type-checking-imports = true
+
+    [tool.ruff.lint]
+        select    = [ "ALL" ]
+        ignore    = [
+            "ANN401",         # Boundary payloads may be intentionally dynamic JSON.
+            "COM812",         # Conflicts with the formatter.
+            "D203",           # Incompatible with D211.
+            "D213",           # Incompatible with D212.
+            "INP001",         # Direct-execution helper folders are not always import packages.
+            "EM101",          # CLI errors are clearer inline at the call site.
+            "EM102",          # CLI errors are clearer inline at the call site.
+            "ISC001",         # Conflicts with the formatter.
+            "TRY003"          # CLI errors are clearer inline at the call site.
+        ]
+        fixable   = [ "ALL" ]
+        unfixable = [
+            "ERA",            # Do not delete commented context automatically.
+            "F401"            # Keep import removal explicit in review.
+        ]
+
+        [tool.ruff.lint.pydocstyle]
+            convention = "google"
+
+        [tool.ruff.lint.flake8-type-checking]
+            strict = true
+
+        [tool.ruff.lint.per-file-ignores]
+            "scripts/bundle_size_analysis.py" = [
+                "D103"           # Direct CLI helper functions are internal implementation details.
+            ]
+            "tests/**/*.py" = [
+                "ARG001",        # Mock call signatures intentionally mirror patched functions.
+                "D100",          # Test module names are enough context.
+                "D103",          # Test function names describe behavior.
+                "PLR0913",       # Mock call signatures intentionally mirror patched functions.
+                "PLR2004",       # Tests use literal expected values for readability.
+                "S101"          # pytest uses assert rewriting.
+            ]
+
+[tool.mypy]
+    python_version           = "3.14"
+    files                    = [ "." ]
+    cache_dir                = ".cache/.mypy_cache"
+    raise_exceptions         = true
+    cobertura_xml_report     = "coverage/mypy/cobertura.xml"
+    linecoverage_report      = "coverage/mypy/linecoverage.xml"
+    xml_report               = "coverage/mypy/mypy.xml"
+    any_exprs_report         = "coverage/mypy/any_exprs.txt"
+    linecount_report         = "coverage/mypy/linecount.txt"
+    lineprecision_report     = "coverage/mypy/lineprecision.txt"
+    fixed_format_cache       = true
+    mypy_path                = "."
+    exclude                  = '''(?x)(
+        (^|/)\.bzr/
+        | (^|/)\.cache/
+        | (^|/)\.git/
+        | (^|/)\.hg/
+        | (^|/)\.mypy_cache/
+        | (^|/)\.nox/
+        | (^|/)\.pytest_cache/
+        | (^|/)\.ruff_cache/
+        | (^|/)\.svn/
+        | (^|/)\.tox/
+        | (^|/)\.venv/
+        | (^|/)__pycache__/
+        | (^|/)__pypackages__/
+        | (^|/)build/
+        | (^|/)coverage/
+        | (^|/)dist/
+        | (^|/)env/
+        | (^|/)htmlcov/
+        | (^|/)node_modules/
+        | (^|/)site-packages/
+        | (^|/)third_party/
+        | (^|/)tmp/
+        | (^|/)vendor/
+        | (^|/)venv/
+    )'''
+    strict                   = true
+    disallow_any_decorated   = true
+    disallow_any_unimported  = true
+    color_output             = true
+    incremental              = true
+    allow_redefinition       = false
+    local_partial_types      = true
+    no_implicit_optional     = true
+    no_implicit_reexport     = true
+    strict_optional          = true
+    strict_bytes             = true
+    strict_equality          = true
+    strict_equality_for_none = true
+    warn_incomplete_stub     = true
+    warn_no_return           = true
+    warn_redundant_casts     = true
+    warn_return_any          = true
+    warn_unused_configs      = true
+    num_workers              = 0
+    warn_unused_ignores      = true
+    warn_unreachable         = true
+    junit_xml                = "coverage/mypy/junit.xml"
+    show_error_context       = true
+    pretty                   = true
+    show_column_numbers      = true
+    enable_error_code        = [
+        "deprecated",
+        "explicit-override",
+        "ignore-without-code",
+        "mutable-override",
+        "possibly-undefined",
+        "redundant-expr",
+        "truthy-bool",
+        "truthy-iterable",
+        "unused-awaitable"
+    ]
+
+[tool.pyright]
+    include                             = [ "." ]
+    extraPaths                          = [ "." ]
+    exclude                             = [
+        "**/.*",
+        "**/.bzr",
+        "**/.cache",
+        "**/.git",
+        "**/.hg",
+        "**/.mypy_cache",
+        "**/.nox",
+        "**/.pytest_cache",
+        "**/.ruff_cache",
+        "**/.svn",
+        "**/.tox",
+        "**/.venv",
+        "**/__pycache__",
+        "**/__pypackages__",
+        "**/build",
+        "**/coverage",
+        "**/dist",
+        "**/env",
+        "**/htmlcov",
+        "**/node_modules",
+        "**/site-packages",
+        "**/third_party",
+        "**/tmp",
+        "**/vendor",
+        "**/venv"
+    ]
+    pythonVersion                       = "3.14"
+    typeCheckingMode                    = "strict"
+    analyzeUnannotatedFunctions         = true
+    strictDictionaryInference           = true
+    strictListInference                 = true
+    strictSetInference                  = true
+    reportAbstractUsage                 = true
+    enableTypeIgnoreComments            = true
+    reportArgumentType                  = true
+    reportAssertAlwaysTrue              = true
+    reportAssertTypeFailure             = true
+    reportAssignmentType                = true
+    reportAttributeAccessIssue          = true
+    reportCallInDefaultInitializer      = true
+    reportCallIssue                     = true
+    reportConstantRedefinition          = true
+    reportDuplicateImport               = true
+    reportGeneralTypeIssues             = true
+    reportImportCycles                  = true
+    reportIncompatibleMethodOverride    = true
+    reportIncompatibleVariableOverride  = true
+    reportInvalidStringEscapeSequence   = true
+    reportInvalidTypeVarUse             = true
+    reportMissingImports                = true
+    reportMissingModuleSource           = true
+    reportMissingTypeArgument           = true
+    reportDeprecated                    = true
+    reportFunctionMemberAccess          = true
+    reportImplicitOverride              = true
+    reportIncompleteStub                = true
+    reportImplicitStringConcatenation   = true
+    reportInconsistentConstructor       = true
+    reportInconsistentOverload          = true
+    reportInvalidTypeArguments          = true
+    reportMatchNotExhaustive            = true
+    reportNoOverloadImplementation      = true
+    reportTypeCommentUsage              = true
+    reportMissingSuperCall              = true
+    reportUnboundVariable               = true
+    reportUntypedFunctionDecorator      = true
+    reportOptionalContextManager        = true
+    reportOptionalOperand               = true
+    reportUnusedCallResult              = true
+    reportOptionalIterable              = true
+    reportUndefinedVariable             = true
+    reportUnusedVariable                = true
+    reportPossiblyUnboundVariable       = true
+    reportUnusedExpression              = true
+    reportOperatorIssue                 = true
+    reportMissingParameterType          = true
+    reportOptionalSubscript             = true
+    reportTypedDictNotRequiredAccess    = true
+    reportUnusedImport                  = true
+    reportUnnecessaryCast               = true
+    reportPrivateUsage                  = true
+    reportReturnType                    = true
+    reportUnnecessaryIsInstance         = true
+    reportUnreachable                   = true
+    reportUntypedBaseClass              = true
+    reportUnsupportedDunderAll          = true
+    reportUntypedClassDecorator         = true
+    reportWildcardImportFromLibrary     = true
+    reportUninitializedInstanceVariable = true
+    reportUnhashable                    = true
+    reportPrivateImportUsage            = true
+    strictParameterNoneValue            = true
+    reportInvalidTypeForm               = true
+    useLibraryCodeForTypes              = true
+    reportUnnecessaryContains           = true
+    pythonPlatform                      = "All"
+    reportUnusedCoroutine               = true
+    reportUnusedFunction                = true
+    reportUnnecessaryComparison         = true
+    reportUnusedClass                   = true
+    reportOverlappingOverload           = true
+    reportUnnecessaryTypeIgnoreComment  = true
+    reportPropertyTypeMismatch          = true
+    strict                              = [ "**/*.py" ]
+    reportOptionalCall                  = true
+    reportSelfClsParameterName          = true
+    reportRedeclaration                 = true
+    reportUntypedNamedTuple             = true
+    reportOptionalMemberAccess          = true
+    reportUnusedExcept                  = true
+    reportIndexIssue                    = true
+    reportInvalidStubStatement          = true
+    enableReachabilityAnalysis          = true
+    deprecateTypingAliases              = true
+    disableBytesTypePromotions          = true
+    reportMissingTypeStubs              = "error"
+    reportUnknownArgumentType           = "error"
+    reportUnknownLambdaType             = "error"
+    reportUnknownMemberType             = "error"
+    reportUnknownParameterType          = "error"
+    reportUnknownVariableType           = "error"
+
+[tool.pytest.ini_options]
+    addopts                    = [ "--strict-config", "--strict-markers", "--import-mode=importlib" ]
+    filterwarnings             = [ "error" ]
+    junit_duration_report      = "call"
+    junit_family               = "xunit2"
+    doctest_encoding           = "utf-8"
+    console_output_style       = "progress"
+    junit_logging              = "log"
+    junit_log_passing_tests    = true
+    junit_suite_name           = "python-junit"
+    pythonpath                 = [ "." ]
+    cache_dir                  = ".cache/.pytest_cache"
+    testpaths                  = [ "." ]
+    norecursedirs              = [
+        ".*",
+        "__pycache__",
+        "__pypackages__",
+        "build",
+        "coverage",
+        "dist",
+        "env",
+        "htmlcov",
+        "node_modules",
+        "site-packages",
+        "third_party",
+        "tmp",
+        "vendor",
+        "venv"
+    ]
+    strict                     = true
+    strict_config              = true
+    strict_markers             = true
+    strict_parametrization_ids = true
+    strict_xfail               = true
+
+[tool.coverage.run]
+    branch = true
+    source = [ "scripts" ]
+
+[tool.coverage.report]
+    fail_under   = 75
+    precision    = 2
+    show_missing = true
+    skip_covered = true
+
+[tool.coverage.xml]
+    output = "coverage/python-coverage.xml"

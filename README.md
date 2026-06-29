@@ -134,6 +134,8 @@ python "scripts/bundle_size_analysis.py" scan --package-json package.json --max-
 For the full command surface and workflow guidance, see:
 
 - `SKILL.md`
+- `references/check-selection.md`
+- `references/bundlephobia-helper.md`
 
 ---
 

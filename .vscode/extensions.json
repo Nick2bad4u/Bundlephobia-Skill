@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "Cameron.vscode-pytest",
+        "charliermarsh.ruff",
+        "littlefoxteam.vscode-python-test-adapter",
+        "ms-python.debugpy",
+        "ms-python.mypy-type-checker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "njpwerner.autodocstring",
+        "pamaron.pytest-runner"
+    ]
+}
