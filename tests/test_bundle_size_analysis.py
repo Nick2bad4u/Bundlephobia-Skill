@@ -10,8 +10,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
+import bundle_size_analysis as bsa
 import pytest
-from scripts import bundle_size_analysis as bsa
 
 
 def query_options() -> bsa.BundlephobiaQueryOptions:
@@ -395,7 +395,7 @@ def test_run_npm_pack_parses_largest_files(monkeypatch: pytest.MonkeyPatch, tmp_
         return subprocess.CompletedProcess("npm", 0, stdout=pack_stdout, stderr="")
 
     monkeypatch.setattr(bsa, "npm_executable", lambda: "npm")
-    monkeypatch.setattr("scripts.bundle_size_analysis.subprocess.run", fake_run)
+    monkeypatch.setattr("bundle_size_analysis.subprocess.run", fake_run)
 
     payload = bsa.run_npm_pack(tmp_path)
 
@@ -438,7 +438,7 @@ def test_run_npm_pack_raises_for_invalid_results(
         return subprocess.CompletedProcess("npm", return_code, stdout=stdout, stderr=stderr)
 
     monkeypatch.setattr(bsa, "npm_executable", lambda: "npm")
-    monkeypatch.setattr("scripts.bundle_size_analysis.subprocess.run", fake_run)
+    monkeypatch.setattr("bundle_size_analysis.subprocess.run", fake_run)
 
     with pytest.raises(bsa.SizeCheckError, match=message):
         _ = bsa.run_npm_pack(tmp_path)
@@ -457,7 +457,7 @@ def test_run_npm_pack_reports_missing_executable(monkeypatch: pytest.MonkeyPatch
         raise FileNotFoundError
 
     monkeypatch.setattr(bsa, "npm_executable", lambda: "npm")
-    monkeypatch.setattr("scripts.bundle_size_analysis.subprocess.run", fake_run)
+    monkeypatch.setattr("bundle_size_analysis.subprocess.run", fake_run)
 
     with pytest.raises(bsa.SizeCheckError, match="npm was not found"):
         _ = bsa.run_npm_pack(tmp_path)
@@ -467,8 +467,8 @@ def test_npm_executable_prefers_found_candidate(monkeypatch: pytest.MonkeyPatch)
     def fake_which(candidate: str) -> str | None:
         return f"/bin/{candidate}" if candidate == "npm" else None
 
-    monkeypatch.setattr("scripts.bundle_size_analysis.os.name", "posix")
-    monkeypatch.setattr("scripts.bundle_size_analysis.shutil.which", fake_which)
+    monkeypatch.setattr("bundle_size_analysis.os.name", "posix")
+    monkeypatch.setattr("bundle_size_analysis.shutil.which", fake_which)
 
     assert bsa.npm_executable() == "/bin/npm"
 
@@ -477,7 +477,7 @@ def test_npm_executable_raises_when_not_found(monkeypatch: pytest.MonkeyPatch) -
     def missing_which(_candidate: str) -> None:
         return None
 
-    monkeypatch.setattr("scripts.bundle_size_analysis.shutil.which", missing_which)
+    monkeypatch.setattr("bundle_size_analysis.shutil.which", missing_which)
 
     with pytest.raises(bsa.SizeCheckError, match="npm was not found"):
         _ = bsa.npm_executable()

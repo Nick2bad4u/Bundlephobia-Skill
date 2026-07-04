@@ -95,7 +95,7 @@
     linecount_report         = "coverage/mypy/linecount.txt"
     lineprecision_report     = "coverage/mypy/lineprecision.txt"
     fixed_format_cache       = true
-    mypy_path                = [ "skills/bundle-size-analysis", "." ]
+    mypy_path                = [ "skills/bundle-size-analysis/scripts", "." ]
     exclude                  = '''(?x)(
         (^|/)\.bzr/
         | (^|/)\.cache/
@@ -161,7 +161,7 @@
 
 [tool.pyright]
     include                             = [ "." ]
-    extraPaths                          = [ "skills/bundle-size-analysis", "." ]
+    extraPaths                          = [ "skills/bundle-size-analysis/scripts", "." ]
     exclude                             = [
         "**/.*",
         "**/.bzr",
@@ -295,7 +295,7 @@
     junit_logging              = "log"
     junit_log_passing_tests    = true
     junit_suite_name           = "python-junit"
-    pythonpath                 = [ "skills/bundle-size-analysis", "." ]
+    pythonpath                 = [ "skills/bundle-size-analysis/scripts", "." ]
     cache_dir                  = ".cache/.pytest_cache"
     testpaths                  = [ "." ]
     norecursedirs              = [
