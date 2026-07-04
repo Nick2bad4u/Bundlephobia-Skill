@@ -83,8 +83,18 @@ assert(
   pkg.repository?.url === "git+https://github.com/Nick2bad4u/Bundlephobia-Skill.git",
   "repository.url must exactly match the GitHub repository for npm trusted publishing",
 );
-assert(skill.path === ".", "codexSkill.path must point at the repository root");
-for (const requiredFile of ["SKILL.md", "LICENSE.txt", "agents/", "assets/", "scripts/*.py", "README.md", "CHANGELOG.md", "SECURITY.md"]) {
+assert(skill.path === "skills/bundle-size-analysis", "codexSkill.path must point at the nested skill directory");
+for (const requiredFile of [
+  "skills/bundle-size-analysis/SKILL.md",
+  "skills/bundle-size-analysis/LICENSE.txt",
+  "skills/bundle-size-analysis/agents/",
+  "skills/bundle-size-analysis/assets/",
+  "skills/bundle-size-analysis/references/",
+  "skills/bundle-size-analysis/scripts/*.py",
+  "README.md",
+  "CHANGELOG.md",
+  "SECURITY.md",
+]) {
   assert(pkg.files?.includes(requiredFile), `package files must include ${requiredFile}`);
 }
 for (const forbiddenFile of [".github/skills/", ".github/instructions/", "dist/", "tools/"]) {

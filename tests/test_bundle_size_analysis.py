@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from scripts import bundle_size_analysis as bsa
 
 
@@ -173,7 +172,11 @@ def test_packages_from_package_json_filters_non_registry_and_skipped_dependencie
 
 
 def test_query_many_packages_sorts_and_summarizes(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_query_bundlephobia_package(package: str, *, options: bsa.BundlephobiaQueryOptions) -> dict[str, Any]:
+    def fake_query_bundlephobia_package(
+        package: str,
+        *,
+        options: bsa.BundlephobiaQueryOptions,
+    ) -> dict[str, Any]:
         assert options.timeout == 5
         if package == "bad":
             return {"package": package, "error": {"message": "Nope"}}
@@ -585,7 +588,10 @@ def test_run_command_dispatch_and_unknown_command(monkeypatch: pytest.MonkeyPatc
     package_json = tmp_path / "package.json"
     _ = package_json.write_text('{"dependencies":{"a":"1.0.0"}}', encoding="utf-8")
 
-    def fake_query_many_packages(packages: list[str], options: bsa.BundlephobiaQueryOptions) -> dict[str, Any]:
+    def fake_query_many_packages(
+        packages: list[str],
+        options: bsa.BundlephobiaQueryOptions,
+    ) -> dict[str, Any]:
         return {"kind": "bundlephobia", "packages": packages, "timeout": options.timeout}
 
     def fake_run_npm_pack(repo: Path) -> dict[str, str]:
@@ -617,7 +623,10 @@ def test_audit_sections_include_scan_pack_and_artifacts(monkeypatch: pytest.Monk
     _ = (dist / "bundle.js").write_text("console.log(1)", encoding="utf-8")
     args = scan_args(tmp_path)
 
-    def fake_query_many_packages(packages: list[str], _options: bsa.BundlephobiaQueryOptions) -> dict[str, Any]:
+    def fake_query_many_packages(
+        packages: list[str],
+        _options: bsa.BundlephobiaQueryOptions,
+    ) -> dict[str, Any]:
         return {"kind": "bundlephobia", "packages": packages}
 
     def fake_run_npm_pack(_repo: Path) -> dict[str, int | str]:

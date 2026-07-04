@@ -62,7 +62,7 @@ build:
                       - "dist/**/*"
                       - "plugin.mjs"
                       - "plugin.d.mts"
-                      - "scripts/**/*"
+                      - "skills/**/scripts/**/*"
                       - "tsconfig.build.json"
                       - "vite.config.ts"
       - title:
@@ -107,6 +107,7 @@ documentation:
                       - "README*"
                       - "CHANGELOG.md"
                       - "RELEASING.md"
+                      - "skills/**/*.md"
       - title:
               - pattern: "(?i)docs"
               - pattern: "(?i)documentation"

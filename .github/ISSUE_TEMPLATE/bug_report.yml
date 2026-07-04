@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible defect in this repository's skill/scripts/workflows
+description: Report a reproducible defect in this repository's skill helper or workflows
 title: "[bug]: "
 labels:
   - bug
@@ -59,7 +59,7 @@ body:
     attributes:
       label: Affected area
       options:
-        - Skill documentation (SKILL.md)
+        - Skill documentation (skills/bundle-size-analysis/SKILL.md)
         - Python CLI helper
         - GitHub workflow automation
         - Hook scripts

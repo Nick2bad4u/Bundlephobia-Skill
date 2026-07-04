@@ -71,7 +71,7 @@
             strict = true
 
         [tool.ruff.lint.per-file-ignores]
-            "scripts/bundle_size_analysis.py" = [
+            "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" = [
                 "D103"           # Direct CLI helper functions are internal implementation details.
             ]
             "tests/**/*.py" = [
@@ -85,7 +85,7 @@
 
 [tool.mypy]
     python_version           = "3.14"
-    files                    = [ "." ]
+    files                    = [ "tests" ]
     cache_dir                = ".cache/.mypy_cache"
     raise_exceptions         = true
     cobertura_xml_report     = "coverage/mypy/cobertura.xml"
@@ -95,7 +95,7 @@
     linecount_report         = "coverage/mypy/linecount.txt"
     lineprecision_report     = "coverage/mypy/lineprecision.txt"
     fixed_format_cache       = true
-    mypy_path                = "."
+    mypy_path                = [ "skills/bundle-size-analysis", "." ]
     exclude                  = '''(?x)(
         (^|/)\.bzr/
         | (^|/)\.cache/
@@ -161,7 +161,7 @@
 
 [tool.pyright]
     include                             = [ "." ]
-    extraPaths                          = [ "." ]
+    extraPaths                          = [ "skills/bundle-size-analysis", "." ]
     exclude                             = [
         "**/.*",
         "**/.bzr",
@@ -295,7 +295,7 @@
     junit_logging              = "log"
     junit_log_passing_tests    = true
     junit_suite_name           = "python-junit"
-    pythonpath                 = [ "." ]
+    pythonpath                 = [ "skills/bundle-size-analysis", "." ]
     cache_dir                  = ".cache/.pytest_cache"
     testpaths                  = [ "." ]
     norecursedirs              = [

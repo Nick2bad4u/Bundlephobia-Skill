@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "skill_path": "SKILL.md",
+  "skill_path": "skills/bundle-size-analysis/SKILL.md",
   "runs": [
     {
       "timestamp_utc": "2026-06-29T04:16:45Z",

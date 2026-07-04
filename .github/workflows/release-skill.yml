@@ -158,9 +158,11 @@ jobs:
       - name: Build release bundle
         run: |
           mkdir -p dist
-          zip -r "dist/${{ steps.vars.outputs.asset }}" \
-            SKILL.md LICENSE.txt agents assets references scripts/*.py \
-            README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
+          (
+            cd skills/bundle-size-analysis
+            zip -r "../../dist/${{ steps.vars.outputs.asset }}" \
+              SKILL.md LICENSE.txt agents assets references scripts/*.py
+          )
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

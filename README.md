@@ -6,7 +6,7 @@ An open-agent skill for inspecting npm package bundle cost with **Bundlephobia**
 
 This repository provides:
 
-- a reusable `bundle-size-analysis` skill (`SKILL.md`)
+- a reusable `bundle-size-analysis` skill (`skills/bundle-size-analysis/SKILL.md`)
 - a Python CLI helper for Bundlephobia package queries, package.json scans, npm publish footprint checks, and local artifact gzip checks
 - GitHub automation for packaging the skill bundle
 
@@ -29,16 +29,18 @@ Using live package-size services and local package data, you can:
 ## Repository layout
 
 ```text
-SKILL.md
-agents/
-  openai.yaml
-assets/
-  bundle-size-analysis-small.svg
-  bundle-size-analysis.png
-references/
-  check-selection.md
-scripts/
-  bundle_size_analysis.py
+skills/
+  bundle-size-analysis/
+    SKILL.md
+    agents/
+      openai.yaml
+    assets/
+      bundle-size-analysis-small.svg
+      bundle-size-analysis.png
+    references/
+      check-selection.md
+    scripts/
+      bundle_size_analysis.py
 README.md
 CONTRIBUTING.md
 SECURITY.md
@@ -49,7 +51,7 @@ CHANGELOG.md
 
 ## Agent compatibility
 
-This is a root `SKILL.md` package. `npx skills` can install it directly from GitHub, and `npx skills experimental_sync` can discover it from `node_modules` because the npm package ships `SKILL.md` at the package root.
+This is a nested `skills/bundle-size-analysis` package. `npx skills` can install it directly from GitHub, and `npx skills experimental_sync` can discover it from `node_modules` because the npm package ships the `skills/` directory.
 
 Use `--agent universal` for agents that consume the shared `.agents/skills` layout. Use `--agent "*"` only when you intentionally want to install to every supported agent directory.
 
@@ -60,7 +62,7 @@ npm install --save-dev bundle-size-analysis-skill
 npx skills experimental_sync --agent universal -y
 ```
 
-OpenAI-specific display metadata lives in `agents/openai.yaml`. The portable skill contract is `SKILL.md` plus the referenced `assets/`, `references/`, and `scripts/` files.
+OpenAI-specific display metadata lives in `skills/bundle-size-analysis/agents/openai.yaml`. The portable skill contract is `skills/bundle-size-analysis/SKILL.md` plus the referenced `assets/`, `references/`, and `scripts/` files in that skill directory.
 
 ---
 
@@ -92,19 +94,19 @@ GitHub Actions publishes with npm OIDC trusted publishing using `npm publish --a
 From repository root:
 
 ```powershell
-python "scripts/bundle_size_analysis.py" package react@18.2.0 lodash@4.17.21
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 lodash@4.17.21
 ```
 
 Fetch deeper Bundlephobia data:
 
 ```powershell
-python "scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --history 10 --similar
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --history 10 --similar
 ```
 
 Machine-readable output:
 
 ```powershell
-python "scripts/bundle_size_analysis.py" package react@18.2.0 --json
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" package react@18.2.0 --json
 ```
 
 ---
@@ -113,29 +115,29 @@ python "scripts/bundle_size_analysis.py" package react@18.2.0 --json
 
 ```powershell
 # Scan runtime dependencies from package.json
-python "scripts/bundle_size_analysis.py" scan --package-json package.json
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json
 
 # Include dev and optional dependencies in a package.json scan
-python "scripts/bundle_size_analysis.py" scan --package-json package.json --include-dev --include-optional
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --include-dev --include-optional
 
 # Check npm publish footprint
-python "scripts/bundle_size_analysis.py" pack --repo .
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" pack --repo .
 
 # Measure local build artifacts
-python "scripts/bundle_size_analysis.py" artifacts dist build
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" artifacts dist build
 
 # Run the combined audit
-python "scripts/bundle_size_analysis.py" audit --repo .
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" audit --repo .
 
 # Fail when any queried package exceeds a gzip budget
-python "scripts/bundle_size_analysis.py" scan --package-json package.json --max-gzip-kb 50
+python "skills/bundle-size-analysis/scripts/bundle_size_analysis.py" scan --package-json package.json --max-gzip-kb 50
 ```
 
 For the full command surface and workflow guidance, see:
 
-- `SKILL.md`
-- `references/check-selection.md`
-- `references/bundlephobia-helper.md`
+- `skills/bundle-size-analysis/SKILL.md`
+- `skills/bundle-size-analysis/references/check-selection.md`
+- `skills/bundle-size-analysis/references/bundlephobia-helper.md`
 
 ---
 
