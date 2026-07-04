@@ -69,7 +69,7 @@
     "ruff:fix": "ruff check --fix skills/bundle-size-analysis/scripts tests",
     "ruff:format": "ruff format skills/bundle-size-analysis/scripts tests",
     "ruff:format:check": "ruff format --check skills/bundle-size-analysis/scripts tests",
-    "test:python": "pytest -p no:xonsh --basetemp=.cache/pytest-tmp --junitxml=test-report.junit.xml --cov=. --cov-report=term-missing:skip-covered --cov-report=lcov:coverage/python-coverage.lcov --cov-fail-under=75",
+    "test:python": "pytest -p no:xonsh --basetemp=pytest-tmp --junitxml=test-report.junit.xml --cov=. --cov-report=term-missing:skip-covered --cov-report=lcov:coverage/python-coverage.lcov --cov-fail-under=75",
     "typecheck:python": "mypy && pyright",
     "skillcheck": "skillcheck --history skills/bundle-size-analysis/SKILL.md --fail-on-regression"
   },

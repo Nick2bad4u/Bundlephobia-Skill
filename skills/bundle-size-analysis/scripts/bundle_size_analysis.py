@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Bundlephobia and local JavaScript package size helper."""
 
 from __future__ import annotations
