@@ -71,11 +71,24 @@
     "ruff:format:check": "ruff format --check skills/bundle-size-analysis/scripts tests",
     "test:python": "pytest -p no:xonsh --basetemp=pytest-tmp --junitxml=test-report.junit.xml --cov=. --cov-report=term-missing:skip-covered --cov-report=lcov:coverage/python-coverage.lcov --cov-fail-under=75",
     "typecheck:python": "mypy && pyright",
-    "skillcheck": "skillcheck --history skills/bundle-size-analysis/SKILL.md --fail-on-regression"
+    "skillcheck": "skillcheck --history skills/bundle-size-analysis/SKILL.md --fail-on-regression",
+    "lint:jscpd": "jscpd --config node_modules/jscpd-config-nick2bad4u/jscpd.json",
+    "changelog:generate": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/Bundlephobia-Skill --output CHANGELOG.md",
+    "changelog:preview": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/Bundlephobia-Skill --unreleased",
+    "changelog:release-notes": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/Bundlephobia-Skill --current",
+    "lint:lychee": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml .",
+    "lint:lychee:smoke": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml --dump-inputs README.md"
   },
   "codexSkill": {
     "name": "bundle-size-analysis",
     "path": "skills/bundle-size-analysis",
     "githubReleaseAssetPrefix": "bundlephobia-skill"
+  },
+  "devDependencies": {
+    "git-cliff": "^2.13.1",
+    "gitcliff-config-nick2bad4u": "^1.1.0",
+    "jscpd": "^5.0.12",
+    "jscpd-config-nick2bad4u": "^1.0.0",
+    "lychee-config-nick2bad4u": "^1.0.0"
   }
 }
