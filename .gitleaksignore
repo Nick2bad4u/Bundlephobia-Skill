@@ -1,0 +1,3 @@
+# Documentation examples assign a secret-store lookup command, not a literal secret.
+372df90:SECURITY.md:nick2bad4u-sensitive-env-vars:34
+372df90:.github/skills/sonar-manage-findings/SKILL.md:nick2bad4u-sensitive-env-vars:50

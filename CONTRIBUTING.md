@@ -1,10 +1,10 @@
-## Contributing to Bundlephobia Skill
+# Contributing to Bundlephobia Skill
 
 Thanks for contributing.
 
 This repository is primarily a skill + helper tooling repo, so high-signal docs and safe defaults matter as much as code changes.
 
-### Development setup
+## Development setup
 
 1. Clone the repository.
 2. Ensure Python 3.10+ is available.

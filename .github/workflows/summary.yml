@@ -1,56 +1,56 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: Summarize New Issues And Pull Requests
+name: "Summarize New Issues And Pull Requests"
 
-run-name: Summary • ${{ github.ref_name }} @${{ github.actor }}
+run-name: "Summary • ${{ github.ref_name }} @${{ github.actor }}"
 
 concurrency:
-    group: summary-${{ github.workflow }}-${{ github.ref }}
+    group: "summary-${{ github.workflow }}-${{ github.ref }}"
     cancel-in-progress: true
 
 on:
     issues:
-        types: [opened, edited]
+        types: ["opened", "edited"]
     pull_request:
-        types: [opened, edited, synchronize]
+        types: ["opened", "edited", "synchronize"]
     merge_group:
         types:
-            - checks_requested
+            - "checks_requested"
 
 jobs:
     inference:
-        name: Summarize Issue Or Pull Request
-        runs-on: ubuntu-latest
+        name: "Summarize Issue Or Pull Request"
+        runs-on: "ubuntu-latest"
         timeout-minutes: 20
-        if: github.event_name == 'issues' || (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]')
+        if: "github.event_name == 'issues' || (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]')"
         permissions:
-            issues: write
-            pull-requests: write
-            contents: read
-            models: read
+            issues: "write"
+            pull-requests: "write"
+            contents: "read"
+            models: "read"
         defaults:
             run:
-                shell: bash
+                shell: "bash"
 
         steps:
-            - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+            - name: "Harden the runner (Audit all outbound calls)"
+              uses: "step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411" # v2.19.4
               with:
-                  egress-policy: audit
+                  egress-policy: "audit"
 
-            - name: Checkout repository
-              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+            - name: "Checkout repository"
+              uses: "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" # v6.0.3
 
-            - name: Run AI inference
-              id: inference
-              if: github.event.pull_request.head.repo.full_name == github.repository
-              uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad # v2.1.1
+            - name: "Run AI inference"
+              id: "inference"
+              if: "github.event.pull_request.head.repo.full_name == github.repository"
+              uses: "actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad" # v2.1.1
               with:
                   prompt: |
                       Summarize the following GitHub ${{ github.event_name == 'pull_request' && 'pull request' || 'issue' }} in order to explain it to the project owner:
                       Title: ${{ github.event.pull_request.title || github.event.issue.title }}
                       Body: ${{ github.event.pull_request.body || github.event.issue.body }}
 
-            - name: Comment with AI summary
+            - name: "Comment with AI summary"
               run: |
                   if [ "${{ github.event_name }}" = "pull_request" ]; then
                     gh pr comment "$PR_NUMBER" --body "$RESPONSE"
@@ -59,21 +59,21 @@ jobs:
                   fi
               env:
                   enable-github-mcp: true
-                  model: gpt-5
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  github-mcp-token: ${{ secrets.GITHUB_TOKEN }}
-                  ISSUE_NUMBER: ${{ github.event.issue.number }}
-                  PR_NUMBER: ${{ github.event.pull_request.number }}
-                  RESPONSE: ${{ steps.inference.outputs.response }}
+                  model: "gpt-5"
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  token: "${{ secrets.GITHUB_TOKEN }}"
+                  github-mcp-token: "${{ secrets.GITHUB_TOKEN }}"
+                  ISSUE_NUMBER: "${{ github.event.issue.number }}"
+                  PR_NUMBER: "${{ github.event.pull_request.number }}"
+                  RESPONSE: "${{ steps.inference.outputs.response }}"
                   system-prompt-file: ".github/instructions/copilot-instructions.md"
                   endpoint: "https://models.github.ai/inference"
                   max-completion-tokens: 8000
 
-            - name: Print Output
-              id: output
+            - name: "Print Output"
+              id: "output"
               run: |
                   echo "${{ steps.inference.outputs.response }}"
                   echo "${{ steps.inference.outputs.response-file }}"
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

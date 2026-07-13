@@ -2,15 +2,15 @@
 version: 2
 
 updates:
-    - package-ecosystem: github-actions
+    - package-ecosystem: "github-actions"
       directory: "/"
       schedule:
-          interval: quarterly
-          day: monday
+          interval: "quarterly"
+          day: "monday"
           time: "05:30"
           timezone: "America/Detroit"
       target-branch: "main"
-      rebase-strategy: auto
+      rebase-strategy: "auto"
       labels:
           - "dependabot"
           - "github-actions"

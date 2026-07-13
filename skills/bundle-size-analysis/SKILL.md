@@ -3,7 +3,7 @@ name: bundle-size-analysis
 description: Use this skill when analyzing npm package size with Bundlephobia or local checks, including package queries, package.json scans, exports/dependencies/history/similar comparisons, npm pack footprint, built artifact gzip checks, and bundle-size recommendations.
 license: "Unlicense"
 metadata:
-  short-description: "Package size checks"
+ short-description: "Package size checks"
 ---
 
 # Bundle Size Analysis
@@ -19,13 +19,13 @@ Use this skill to answer package-size questions with live measurements where pos
    - Built app/library output: inspect `dist`, `build`, `lib`, `esm`, or explicit artifact paths.
 2. Run the helper from the skill directory:
 
-```powershell
-python "scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --similar
-python "scripts/bundle_size_analysis.py" scan --package-json package.json
-python "scripts/bundle_size_analysis.py" pack --repo .
-python "scripts/bundle_size_analysis.py" artifacts dist
-python "scripts/bundle_size_analysis.py" audit --repo .
-```
+   ```powershell
+   python "scripts/bundle_size_analysis.py" package react@18.2.0 --exports --dependencies --similar
+   python "scripts/bundle_size_analysis.py" scan --package-json package.json
+   python "scripts/bundle_size_analysis.py" pack --repo .
+   python "scripts/bundle_size_analysis.py" artifacts dist
+   python "scripts/bundle_size_analysis.py" audit --repo .
+   ```
 
 3. Report:
    - Minified and minified+gzip sizes.

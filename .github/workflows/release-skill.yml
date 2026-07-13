@@ -1,199 +1,200 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: Release Skill Bundle
+name: "Release Skill Bundle"
 
-run-name: Release Skill Bundle • ${{ github.ref_name || github.event.inputs.version || github.event.inputs.release_type }} @${{ github.actor }}
+run-name: "Release Skill Bundle • ${{ github.ref_name || github.event.inputs.version || github.event.inputs.release_type }} @${{ github.actor }}"
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: "Release bump type"
-        required: true
-        default: patch
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-      version:
-        description: "Explicit release version in x.y.z format (overrides release_type)"
-        required: false
-        type: string
-      ref:
-        description: "Branch to release from when running manually"
-        required: false
-        default: main
-        type: string
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+        inputs:
+            release_type:
+                description: "Release bump type"
+                required: true
+                default: "patch"
+                type: "choice"
+                options:
+                    - "patch"
+                    - "minor"
+                    - "major"
+            version:
+                description: "Explicit release version in x.y.z format (overrides release_type)"
+                required: false
+                type: "string"
+            ref:
+                description: "Branch to release from when running manually"
+                required: false
+                default: "main"
+                type: "string"
 
 defaults:
-  run:
-    shell: bash
+    run:
+        shell: "bash"
 
 concurrency:
-  group: "release-skill-${{ github.ref || github.event.inputs.version || github.event.inputs.release_type }}"
-  cancel-in-progress: false
+    group: "release-skill-${{ github.ref || github.event.inputs.version || github.event.inputs.release_type }}"
+    cancel-in-progress: false
 
 jobs:
-  release:
-    name: Package and publish skill
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
-      id-token: write
+    release:
+        name: "Package and publish skill"
+        runs-on: "ubuntu-latest"
+        timeout-minutes: 20
+        permissions:
+            contents: "write"
+            id-token: "write"
 
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
+        steps:
+            - name: "Harden Runner"
+              uses: "step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411" # v2.19.4
+              with:
+                  egress-policy: "audit"
 
-      - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+            - name: "Checkout repository"
+              uses: "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" # v6.0.3
+              with:
+                  fetch-depth: 0
+                  ref: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
+            - name: "Setup Node.js"
+              uses: "actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e" # v6.4.0
+              with:
+                  node-version: "24"
+                  registry-url: "https://registry.npmjs.org"
+                  package-manager-cache: false
 
-      - name: Setup Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.14"
+            - name: "Setup Python"
+              uses: "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" # v6.3.0
+              with:
+                  python-version: "3.14"
 
-      - name: Install Python dependencies
-        run: python -m pip install -r requirements-dev.txt
+            - name: "Install Python dependencies"
+              run: "python -m pip install -r requirements-dev.txt"
 
-      - name: Resolve release tag
-        id: vars
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            EXPLICIT_VERSION="${{ github.event.inputs.version }}"
-            RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+            - name: "Resolve release tag"
+              id: "vars"
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    EXPLICIT_VERSION="${{ github.event.inputs.version }}"
+                    RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
-            if [ -n "${EXPLICIT_VERSION}" ]; then
-              if ! [[ "${EXPLICIT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                echo "version must be in x.y.z format" >&2
-                exit 1
-              fi
-              NEXT_VERSION="${EXPLICIT_VERSION}"
-            else
-              LATEST_TAG="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+                    if [ -n "${EXPLICIT_VERSION}" ]; then
+                      if ! [[ "${EXPLICIT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        echo "version must be in x.y.z format" >&2
+                        exit 1
+                      fi
+                      NEXT_VERSION="${EXPLICIT_VERSION}"
+                    else
+                      LATEST_TAG="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
 
-              if [ -n "${LATEST_TAG}" ]; then
-                BASE_VERSION="${LATEST_TAG#v}"
-              else
-                BASE_VERSION="$(node -p "require('./package.json').version")"
-              fi
+                      if [ -n "${LATEST_TAG}" ]; then
+                        BASE_VERSION="${LATEST_TAG#v}"
+                      else
+                        BASE_VERSION="$(node -p "require('./package.json').version")"
+                      fi
 
-              IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
+                      IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
 
-              case "${RELEASE_TYPE}" in
-                patch)
-                  PATCH=$((PATCH + 1))
-                  ;;
-                minor)
-                  MINOR=$((MINOR + 1))
-                  PATCH=0
-                  ;;
-                major)
-                  MAJOR=$((MAJOR + 1))
-                  MINOR=0
-                  PATCH=0
-                  ;;
-                *)
-                  echo "Unsupported release_type: ${RELEASE_TYPE}" >&2
-                  exit 1
-                  ;;
-              esac
+                      case "${RELEASE_TYPE}" in
+                        patch)
+                          PATCH=$((PATCH + 1))
+                          ;;
+                        minor)
+                          MINOR=$((MINOR + 1))
+                          PATCH=0
+                          ;;
+                        major)
+                          MAJOR=$((MAJOR + 1))
+                          MINOR=0
+                          PATCH=0
+                          ;;
+                        *)
+                          echo "Unsupported release_type: ${RELEASE_TYPE}" >&2
+                          exit 1
+                          ;;
+                      esac
 
-              NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-            fi
+                      NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+                    fi
 
-            TAG="v${NEXT_VERSION}"
-          else
-            TAG="${GITHUB_REF_NAME}"
-          fi
+                    TAG="v${NEXT_VERSION}"
+                  else
+                    TAG="${GITHUB_REF_NAME}"
+                  fi
 
-          if ! [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Resolved tag '${TAG}' is not in vX.Y.Z format" >&2
-            exit 1
-          fi
+                  if ! [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "Resolved tag '${TAG}' is not in vX.Y.Z format" >&2
+                    exit 1
+                  fi
 
-          TARGET="$(git rev-parse HEAD)"
-          VERSION="${TAG#v}"
-          ASSET="bundlephobia-skill-${TAG}.zip"
+                  TARGET="$(git rev-parse HEAD)"
+                  VERSION="${TAG#v}"
+                  ASSET="bundlephobia-skill-${TAG}.zip"
 
-          {
-            echo "tag=${TAG}"
-            echo "version=${VERSION}"
-            echo "target=${TARGET}"
-            echo "asset=${ASSET}"
-          } >> "$GITHUB_OUTPUT"
+                  {
+                    echo "tag=${TAG}"
+                    echo "version=${VERSION}"
+                    echo "target=${TARGET}"
+                    echo "asset=${ASSET}"
+                  } >> "$GITHUB_OUTPUT"
 
-      - name: Prepare npm package version
-        run: npm version --no-git-tag-version "${{ steps.vars.outputs.version }}"
+            - name: "Prepare npm package version"
+              run: >-
+                  npm version --no-git-tag-version "${{ steps.vars.outputs.version }}"
 
-      - name: Validate npm package
-        run: npm run release:verify
+            - name: "Validate npm package"
+              run: "npm run release:verify"
 
-      - name: Generate release notes
-        id: git-cliff
-        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4
-        with:
-          config: node_modules/gitcliff-config-nick2bad4u/cliff.toml
-          args: --verbose --tag ${{ steps.vars.outputs.tag }} --strip header
-        env:
-          OUTPUT: release-notes.md
-          GITHUB_REPO: ${{ github.repository }}
+            - name: "Generate release notes"
+              id: "git-cliff"
+              uses: "orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5" # v4
+              with:
+                  config: "node_modules/gitcliff-config-nick2bad4u/cliff.toml"
+                  args: "--verbose --tag ${{ steps.vars.outputs.tag }} --strip header"
+              env:
+                  OUTPUT: "release-notes.md"
+                  GITHUB_REPO: "${{ github.repository }}"
 
-      - name: Build release bundle
-        run: |
-          mkdir -p dist
-          (
-            cd skills/bundle-size-analysis
-            zip -r "../../dist/${{ steps.vars.outputs.asset }}" \
-              SKILL.md LICENSE.txt agents assets references scripts/*.py
-          )
+            - name: "Build release bundle"
+              run: |
+                  mkdir -p dist
+                  (
+                    cd skills/bundle-size-analysis
+                    zip -r "../../dist/${{ steps.vars.outputs.asset }}" \
+                      SKILL.md LICENSE.txt agents assets references scripts/*.py
+                  )
 
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ steps.vars.outputs.asset }}
-          path: dist/${{ steps.vars.outputs.asset }}
-          if-no-files-found: error
-          retention-days: 7
+            - name: "Upload workflow artifact"
+              uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+              with:
+                  name: "${{ steps.vars.outputs.asset }}"
+                  path: "dist/${{ steps.vars.outputs.asset }}"
+                  if-no-files-found: "error"
+                  retention-days: 7
 
-      - name: Publish npm package
-        run: |
-          PACKAGE_NAME="$(node -p "require('./package.json').name")"
-          VERSION="${{ steps.vars.outputs.version }}"
+            - name: "Publish npm package"
+              run: |
+                  PACKAGE_NAME="$(node -p "require('./package.json').name")"
+                  VERSION="${{ steps.vars.outputs.version }}"
 
-          if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
-            echo "${PACKAGE_NAME}@${VERSION} is already published; skipping npm publish."
-          else
-            npm publish --access public
-          fi
+                  if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+                    echo "${PACKAGE_NAME}@${VERSION} is already published; skipping npm publish."
+                  else
+                    npm publish --access public
+                  fi
 
-      - name: Publish GitHub release asset
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.vars.outputs.tag }}
-          ASSET: dist/${{ steps.vars.outputs.asset }}
-          NOTES: ${{ steps.git-cliff.outputs.changelog }}
-          TARGET: ${{ steps.vars.outputs.target }}
-        run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --notes-file "$NOTES"
-            gh release upload "$TAG" "$ASSET" --clobber
-          else
-            gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --notes-file "$NOTES"
-          fi
+            - name: "Publish GitHub release asset"
+              env:
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  TAG: "${{ steps.vars.outputs.tag }}"
+                  ASSET: "dist/${{ steps.vars.outputs.asset }}"
+                  NOTES: "${{ steps.git-cliff.outputs.changelog }}"
+                  TARGET: "${{ steps.vars.outputs.target }}"
+              run: |
+                  if gh release view "$TAG" >/dev/null 2>&1; then
+                    gh release edit "$TAG" --notes-file "$NOTES"
+                    gh release upload "$TAG" "$ASSET" --clobber
+                  else
+                    gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --notes-file "$NOTES"
+                  fi

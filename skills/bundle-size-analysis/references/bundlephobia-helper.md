@@ -6,7 +6,7 @@ Use this reference when running optional Bundlephobia endpoints, interpreting he
 
 - Bundlephobia's public package endpoint is `https://bundlephobia.com/api/size?package=<name[@version]>`.
 - The website may add `record=true` for recent-search tracking; keep helper/API checks read-only unless the user explicitly asks to mimic a site submission.
-- The site's package.json scan resolves packages, skips many backend/dev-tool packages by default, then queries the same size endpoint.
+- The site's package.json scan resolves packages, skips selected backend and development-tool packages by default, then queries the same size endpoint.
 - Bundlephobia numbers are useful for "what if I import this complete npm package?" They are not a substitute for measuring the user's actual application bundle.
 - Treat build errors as package-specific signals. They can indicate missing dependency declarations, unsupported package layouts, or Bundlephobia build limitations.
 - Use Bundlephobia links in summaries for packages users may want to inspect manually: `https://bundlephobia.com/package/<package>`.
