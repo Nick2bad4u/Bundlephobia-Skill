@@ -146,6 +146,55 @@ jobs:
             - name: "Validate npm package"
               run: "npm run release:verify"
 
+            - name: "Prepare expected release tag for manual runs"
+              if: "github.event_name == 'workflow_dispatch'"
+              env:
+                  EXPECTED_TAG: "${{ steps.vars.outputs.tag }}"
+              run: |
+                  set -euo pipefail
+
+                  if [ -z "$EXPECTED_TAG" ]; then
+                    echo "::error::The release version step did not provide an expected tag."
+                    exit 1
+                  fi
+
+                  if git show-ref --verify --quiet "refs/tags/${EXPECTED_TAG}"; then
+                    echo "::error::Expected release tag ${EXPECTED_TAG} already exists; refusing to replace it during a manual release."
+                    exit 1
+                  fi
+
+                  git tag "$EXPECTED_TAG" HEAD
+
+            - name: "Validate expected release tag"
+              env:
+                  EXPECTED_TAG: "${{ steps.vars.outputs.tag }}"
+              run: |
+                  set -euo pipefail
+
+                  if [ -z "$EXPECTED_TAG" ]; then
+                    echo "::error::The release version step did not provide an expected tag."
+                    exit 1
+                  fi
+
+                  tag_ref="refs/tags/${EXPECTED_TAG}"
+                  if ! git show-ref --verify --quiet "$tag_ref"; then
+                    echo "::error::Expected release tag ${EXPECTED_TAG} does not exist in the local checkout."
+                    exit 1
+                  fi
+
+                  tag_commit=$(git rev-parse "${tag_ref}^{commit}")
+                  head_commit=$(git rev-parse HEAD)
+                  if [ "$tag_commit" != "$head_commit" ]; then
+                    echo "::error::Expected release tag ${EXPECTED_TAG} points to ${tag_commit}, but HEAD is ${head_commit}."
+                    exit 1
+                  fi
+
+                  head_tags=$(git tag --points-at HEAD --sort=refname)
+                  if [ "$head_tags" != "$EXPECTED_TAG" ]; then
+                    echo "::error::HEAD must have exactly the expected release tag ${EXPECTED_TAG}; found: ${head_tags:-<none>}."
+                    exit 1
+                  fi
+
             - name: "Generate release notes"
               id: "git-cliff"
               uses: "orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5" # v4
@@ -155,6 +204,7 @@ jobs:
               env:
                   OUTPUT: "release-notes.md"
                   GITHUB_REPO: "${{ github.repository }}"
+                  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
             - name: "Build release bundle"
               run: |
